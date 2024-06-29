@@ -1,8 +1,12 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
 
 class FoodItem(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=100)
+    producer = models.CharField(max_length=100)
+
     calories = models.PositiveIntegerField()
     protein = models.FloatField()
     fat = models.FloatField()
@@ -20,6 +24,19 @@ class FoodItem(models.Model):
     
     quantity_unit = models.CharField(max_length=3, choices=UNIT_CHOICES, default=GRAMS)
 
+    def clean(self):
+        if self.protein < 0:
+            raise ValidationError(_('Protein value cannot be negative'))
+        if self.fat < 0:
+            raise ValidationError(_('Fat value cannot be negative'))
+        if self.carbohydrates < 0:
+            raise ValidationError(_('Carbohydrates value cannot be negative'))
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
+
+
 class UserMeal(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='meals')
     food_item = models.ForeignKey(FoodItem, on_delete=models.CASCADE, related_name='meals')
@@ -29,3 +46,11 @@ class UserMeal(models.Model):
 
     class Meta:
         ordering = ['-datetime']
+
+    def clean(self):
+        if self.quantity <= 0:
+            raise ValidationError(_('Quantity must be positive'))
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
