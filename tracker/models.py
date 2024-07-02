@@ -4,6 +4,8 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 class FoodItem(models.Model):
+    owner = models.ForeignKey(
+        'auth.User', related_name='fooditems', on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     producer = models.CharField(max_length=100)
 
@@ -36,9 +38,13 @@ class FoodItem(models.Model):
         self.clean()
         super().save(*args, **kwargs)
 
+    def __str__(self):
+        return f"{self.producer} {self.name} ({self.calories} kcal per {self.portion_size} {self.quantity_unit})"
+    
 
 class UserMeal(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='meals')
+    owner = models.ForeignKey(
+        'auth.User', related_name='meals', on_delete=models.CASCADE)
     food_item = models.ForeignKey(FoodItem, on_delete=models.CASCADE, related_name='meals')
     datetime = models.DateTimeField(auto_now_add=True)
 
