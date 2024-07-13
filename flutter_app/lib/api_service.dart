@@ -129,4 +129,39 @@ class ApiService {
       throw Exception('Failed to load user meals');
     }
   }
+
+  Future<void> updateUserMeal(UserMeal meal) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('access') ?? '';
+
+    final response = await http.put(
+      Uri.parse('$baseUrl/usermeals/${meal.id}/'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(meal.toJson()),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update meal');
+    }
+  }
+
+   Future<void> deleteUserMeal(int mealId) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('access') ?? '';
+
+    final response = await http.delete(
+      Uri.parse('$baseUrl/usermeals/$mealId/'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode != 204) {
+      throw Exception('Failed to delete meal');
+    }
+  }
 }

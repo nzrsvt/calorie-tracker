@@ -42,7 +42,7 @@ class FoodItem {
 class UserMeal {
   final int id;
   final FoodItem foodItem;
-  final double quantity;
+  double quantity;
   final DateTime datetime;
   final String owner;
 
@@ -62,5 +62,15 @@ class UserMeal {
       datetime: DateTime.parse(json['datetime']),
       owner: json['owner'],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'food_item': foodItem.id,
+      'quantity': quantity,
+      'datetime': datetime.toIso8601String(),
+      'owner': owner,
+    };
   }
 }
