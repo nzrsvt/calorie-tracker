@@ -41,6 +41,13 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
+  void _navigateToAddFoodItem() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => AddFoodItemPage()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,6 +66,18 @@ class _SearchPageState extends State<SearchPage> {
                   icon: Icon(Icons.search),
                   onPressed: _searchFoodItems,
                 ),
+              ),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _navigateToAddFoodItem,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+              ),
+              child: Text(
+                'Create your own food',
+                style: TextStyle(fontSize: 18),
               ),
             ),
             SizedBox(height: 20),
@@ -111,6 +130,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
     try {
       await apiService.addUserMeal(widget.foodItem.id, double.parse(_portionSizeController.text));
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Meal added successfully')));
+      Navigator.pop(context);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add meal')));
     }
@@ -143,7 +163,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
             ),
             DropdownButton<String>(
               value: _selectedUnit,
-              items: <String>['g', 'ml', 'oz'].map((String value) {
+              items: <String>['g', 'ml', 'pcs'].map((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
                   child: Text(value),
@@ -161,6 +181,129 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
               child: Text('Add Meal'),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class AddFoodItemPage extends StatefulWidget {
+  @override
+  _AddFoodItemPageState createState() => _AddFoodItemPageState();
+}
+
+class _AddFoodItemPageState extends State<AddFoodItemPage> {
+  final ApiService apiService = ApiService();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _producerController = TextEditingController();
+  final TextEditingController _caloriesController = TextEditingController();
+  final TextEditingController _proteinController = TextEditingController();
+  final TextEditingController _fatController = TextEditingController();
+  final TextEditingController _carbohydratesController = TextEditingController();
+  final TextEditingController _portionSizeController = TextEditingController();
+  String _selectedUnit = 'g';
+
+  void _addFoodItem() async {
+    try {
+      await apiService.addFoodItem(
+        name: _nameController.text,
+        producer: _producerController.text,
+        calories: int.parse(_caloriesController.text),
+        protein: double.tryParse(_proteinController.text),
+        fat: double.tryParse(_fatController.text),
+        carbohydrates: double.tryParse(_carbohydratesController.text),
+        portionSize: double.parse(_portionSizeController.text),
+        quantityUnit: _selectedUnit,
+      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Food item added successfully')));
+      Navigator.pop(context);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add food item')));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Add Food Item'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextField(
+                controller: _nameController,
+                decoration: InputDecoration(
+                  labelText: 'Name',
+                ),
+              ),
+              TextField(
+                controller: _producerController,
+                decoration: InputDecoration(
+                  labelText: 'Producer',
+                ),
+              ),
+              TextField(
+                controller: _caloriesController,
+                decoration: InputDecoration(
+                  labelText: 'Calories',
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              TextField(
+                controller: _proteinController,
+                decoration: InputDecoration(
+                  labelText: 'Protein (optional)',
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              TextField(
+                controller: _fatController,
+                decoration: InputDecoration(
+                  labelText: 'Fat (optional)',
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              TextField(
+                controller: _carbohydratesController,
+                decoration: InputDecoration(
+                  labelText: 'Carbohydrates (optional)',
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              TextField(
+                controller: _portionSizeController,
+                decoration: InputDecoration(
+                  labelText: 'Portion Size',
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              SizedBox(height: 10),
+              Text('Quantity Unit'),
+              DropdownButton<String>(
+                value: _selectedUnit,
+                items: <String>['g', 'ml', 'pcs'].map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                onChanged: (newValue) {
+                  setState(() {
+                    _selectedUnit = newValue!;
+                  });
+                },
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _addFoodItem,
+                child: Text('Add Food Item'),
+              ),
+            ],
+          ),
         ),
       ),
     );

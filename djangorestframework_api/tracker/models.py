@@ -10,9 +10,9 @@ class FoodItem(models.Model):
     producer = models.CharField(max_length=100)
 
     calories = models.PositiveIntegerField()
-    protein = models.FloatField()
-    fat = models.FloatField()
-    carbohydrates = models.FloatField()
+    protein = models.FloatField(default=0)
+    fat = models.FloatField(default=0)
+    carbohydrates = models.FloatField(default=0)
     portion_size = models.FloatField()
 
     GRAMS = 'g'

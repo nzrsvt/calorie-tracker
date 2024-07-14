@@ -37,6 +37,19 @@ class FoodItem {
       owner: json['owner'],
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'producer': producer,
+      'calories': calories,
+      'protein': protein,
+      'fat': fat,
+      'carbohydrates': carbohydrates,
+      'portion_size': portionSize,
+      'quantity_unit': quantityUnit,
+    };
+  }
 }
 
 class UserMeal {

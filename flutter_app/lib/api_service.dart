@@ -88,6 +88,42 @@ class ApiService {
     }
   }
 
+  Future<void> addFoodItem({
+    required String name,
+    required String producer,
+    required int calories,
+    double? protein,
+    double? fat,
+    double? carbohydrates,
+    required double portionSize,
+    required String quantityUnit,
+  }) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('access') ?? '';
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/fooditems/'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(<String, dynamic>{
+        'name': name,
+        'producer': producer,
+        'calories': calories,
+        'protein': protein ?? 0,
+        'fat': fat ?? 0,
+        'carbohydrates': carbohydrates ?? 0,
+        'portion_size': portionSize,
+        'quantity_unit': quantityUnit,
+      }),
+    );
+
+    if (response.statusCode != 201) {
+      throw Exception('Failed to add food item');
+    }
+  }
+
   Future<void> addUserMeal(int foodItemId, double quantity) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access') ?? '';
