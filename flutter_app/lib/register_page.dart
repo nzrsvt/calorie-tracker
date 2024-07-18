@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'api_service.dart';
+import 'auth_service.dart';
 import 'login_page.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -8,17 +8,17 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  final ApiService apiService = ApiService();
+  final AuthService _authService = AuthService();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
 
   void _register() async {
     try {
-      await apiService.register(
+      await _authService.register(
         _usernameController.text,
-        _passwordController.text,
         _emailController.text,
+        _passwordController.text,
       );
       Navigator.pushReplacement(
         context,

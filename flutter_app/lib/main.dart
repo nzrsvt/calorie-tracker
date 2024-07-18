@@ -4,6 +4,7 @@ import 'register_page.dart';
 import 'home_page.dart';
 import 'search_page.dart'; 
 import 'meals_page.dart';
+import 'splash_screen.dart';
 
 void main() {
   runApp(MyApp());
@@ -20,7 +21,8 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/',
       routes: {
-        '/': (context) => LoginPage(),
+        '/': (context) => SplashScreen(),
+        '/login': (context) => LoginPage(),
         '/register': (context) => RegisterPage(),
         '/home': (context) => MainScreen(),
       },

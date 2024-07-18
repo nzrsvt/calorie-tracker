@@ -27,7 +27,8 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Column(
         children: [
-          Expanded(
+          Flexible(
+            flex: 1,
             child: FutureBuilder<List<FoodItem>>(
               future: futureFoodItems,
               builder: (context, snapshot) {
@@ -48,7 +49,8 @@ class _MyHomePageState extends State<MyHomePage> {
               },
             ),
           ),
-          Expanded(
+          Flexible(
+            flex: 1,
             child: FutureBuilder<List<UserMeal>>(
               future: futureUserMeals,
               builder: (context, snapshot) {
@@ -74,3 +76,4 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+

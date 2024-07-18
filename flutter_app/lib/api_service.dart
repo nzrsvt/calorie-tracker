@@ -1,65 +1,73 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
+import 'auth_service.dart';
 import 'models.dart';
 
 class ApiService {
   final String baseUrl = 'http://10.0.2.2:8000';
+  final AuthService _authService = AuthService();
 
-  Future<void> register(String username, String password, String email) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/api/register/'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
-        'username': username,
-        'password': password,
-        'email': email,
-      }),
-    );
-
-    if (response.statusCode == 201) {
-      // Registration successful
-    } else {
-      throw Exception('Failed to register');
+  Future<Map<String, String>> _getHeaders() async {
+    String? token = await _authService.getAccessToken();
+    if (token == null) {
+      throw Exception('Access token not found');
     }
+    return {
+      'Content-Type': 'application/json; charset=UTF-8',
+      'Authorization': 'Bearer $token',
+    };
   }
 
-  Future<void> login(String username, String password) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/api/token/'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
-        'username': username,
-        'password': password,
-      }),
-    );
+  Future<http.Response> _get(String url) async {
+    final headers = await _getHeaders();
+    final response = await http.get(Uri.parse(url), headers: headers);
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('access', data['access']);
-      await prefs.setString('refresh', data['refresh']);
-    } else {
-      throw Exception('Failed to login');
+    if (response.statusCode == 401) {
+      await _authService.refreshToken();
+      final newHeaders = await _getHeaders();
+      return await http.get(Uri.parse(url), headers: newHeaders);
     }
+    return response;
+  }
+
+  Future<http.Response> _post(String url, Map<String, dynamic> body) async {
+    final headers = await _getHeaders();
+    final response = await http.post(Uri.parse(url), headers: headers, body: jsonEncode(body));
+
+    if (response.statusCode == 401) {
+      await _authService.refreshToken();
+      final newHeaders = await _getHeaders();
+      return await http.post(Uri.parse(url), headers: newHeaders, body: jsonEncode(body));
+    }
+    return response;
+  }
+
+  Future<http.Response> _put(String url, Map<String, dynamic> body) async {
+    final headers = await _getHeaders();
+    final response = await http.put(Uri.parse(url), headers: headers, body: jsonEncode(body));
+
+    if (response.statusCode == 401) {
+      await _authService.refreshToken();
+      final newHeaders = await _getHeaders();
+      return await http.put(Uri.parse(url), headers: newHeaders, body: jsonEncode(body));
+    }
+    return response;
+  }
+
+  Future<http.Response> _delete(String url) async {
+    final headers = await _getHeaders();
+    final response = await http.delete(Uri.parse(url), headers: headers);
+
+    if (response.statusCode == 401) {
+      await _authService.refreshToken();
+      final newHeaders = await _getHeaders();
+      return await http.delete(Uri.parse(url), headers: newHeaders);
+    }
+    return response;
   }
 
   Future<List<FoodItem>> fetchFoodItems() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('access') ?? '';
-
-    final response = await http.get(
-      Uri.parse('$baseUrl/fooditems/'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Authorization': 'Bearer $token',
-      },
-    );
-
+    final response = await _get('$baseUrl/fooditems/');
     if (response.statusCode == 200) {
       List jsonResponse = jsonDecode(response.body)['results'];
       return jsonResponse.map((data) => FoodItem.fromJson(data)).toList();
@@ -69,17 +77,7 @@ class ApiService {
   }
 
   Future<List<FoodItem>> searchFoodItems(String query) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('access') ?? '';
-
-    final response = await http.get(
-      Uri.parse('$baseUrl/fooditems/?search=$query'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Authorization': 'Bearer $token',
-      },
-    );
-
+    final response = await _get('$baseUrl/fooditems/?search=$query');
     if (response.statusCode == 200) {
       List jsonResponse = jsonDecode(response.body)['results'];
       return jsonResponse.map((data) => FoodItem.fromJson(data)).toList();
@@ -98,26 +96,16 @@ class ApiService {
     required double portionSize,
     required String quantityUnit,
   }) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('access') ?? '';
-
-    final response = await http.post(
-      Uri.parse('$baseUrl/fooditems/'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode(<String, dynamic>{
-        'name': name,
-        'producer': producer,
-        'calories': calories,
-        'protein': protein ?? 0,
-        'fat': fat ?? 0,
-        'carbohydrates': carbohydrates ?? 0,
-        'portion_size': portionSize,
-        'quantity_unit': quantityUnit,
-      }),
-    );
+    final response = await _post('$baseUrl/fooditems/', {
+      'name': name,
+      'producer': producer,
+      'calories': calories,
+      'protein': protein ?? 0,
+      'fat': fat ?? 0,
+      'carbohydrates': carbohydrates ?? 0,
+      'portion_size': portionSize,
+      'quantity_unit': quantityUnit,
+    });
 
     if (response.statusCode != 201) {
       throw Exception('Failed to add food item');
@@ -125,21 +113,11 @@ class ApiService {
   }
 
   Future<void> addUserMeal(int foodItemId, double quantity) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('access') ?? '';
-
-    final response = await http.post(
-      Uri.parse('$baseUrl/usermeals/'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode(<String, dynamic>{
-        'food_item': foodItemId,
-        'quantity': quantity,
-        'datetime': DateTime.now().toIso8601String(),
-      }),
-    );
+    final response = await _post('$baseUrl/usermeals/', {
+      'food_item': foodItemId,
+      'quantity': quantity,
+      'datetime': DateTime.now().toIso8601String(),
+    });
 
     if (response.statusCode != 201) {
       throw Exception('Failed to add meal');
@@ -147,17 +125,7 @@ class ApiService {
   }
 
   Future<List<UserMeal>> fetchUserMeals() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('access') ?? '';
-
-    final response = await http.get(
-      Uri.parse('$baseUrl/usermeals/'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Authorization': 'Bearer $token',
-      },
-    );
-
+    final response = await _get('$baseUrl/usermeals/');
     if (response.statusCode == 200) {
       List jsonResponse = jsonDecode(response.body)['results'];
       return jsonResponse.map((data) => UserMeal.fromJson(data)).toList();
@@ -167,35 +135,14 @@ class ApiService {
   }
 
   Future<void> updateUserMeal(UserMeal meal) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('access') ?? '';
-
-    final response = await http.put(
-      Uri.parse('$baseUrl/usermeals/${meal.id}/'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode(meal.toJson()),
-    );
-
+    final response = await _put('$baseUrl/usermeals/${meal.id}/', meal.toJson());
     if (response.statusCode != 200) {
       throw Exception('Failed to update meal');
     }
   }
 
-   Future<void> deleteUserMeal(int mealId) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('access') ?? '';
-
-    final response = await http.delete(
-      Uri.parse('$baseUrl/usermeals/$mealId/'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Authorization': 'Bearer $token',
-      },
-    );
-
+  Future<void> deleteUserMeal(int mealId) async {
+    final response = await _delete('$baseUrl/usermeals/$mealId/');
     if (response.statusCode != 204) {
       throw Exception('Failed to delete meal');
     }
