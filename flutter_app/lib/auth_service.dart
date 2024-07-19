@@ -4,7 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AuthService {
   final String baseUrl = 'http://10.0.2.2:8000';
-  final storage = FlutterSecureStorage();
+  final storage = const FlutterSecureStorage();
 
   Future<void> register(String username, String email, String password) async {
     final response = await http.post(
@@ -49,17 +49,23 @@ class AuthService {
       throw Exception('Refresh token not found');
     }
 
-    final response = await http.post(
-      Uri.parse('$baseUrl/api/token/refresh/'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'refresh': refreshToken}),
-    );
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/token/refresh/'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'refresh': refreshToken}),
+      );
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      await storage.write(key: 'accessToken', value: data['access']);
-    } else {
-      throw Exception('Failed to refresh token');
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        await storage.write(key: 'accessToken', value: data['access']);
+      } else {
+        await logout();
+        throw Exception('Failed to refresh token');
+      }
+    } catch (e) {
+      await logout();
+      throw Exception('Failed to refresh token: $e');
     }
   }
 
@@ -69,5 +75,18 @@ class AuthService {
 
   Future<String?> getRefreshToken() async {
     return await storage.read(key: 'refreshToken');
+  }
+
+  Future<int> testAccessToken(String accessToken) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/auth/verify/'),
+        headers: {'Authorization': 'Bearer $accessToken'},
+      );
+      return response.statusCode;
+    } catch (e) {
+      print('Error testing access token: $e');
+      return 401;
+    }
   }
 }

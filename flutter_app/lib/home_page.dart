@@ -3,6 +3,8 @@ import 'api_service.dart';
 import 'models.dart';
 
 class MyHomePage extends StatefulWidget {
+  const MyHomePage({super.key});
+
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
@@ -23,7 +25,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Calorie Tracker'),
+        title: const Text('Calorie Tracker'),
       ),
       body: Column(
         children: [
@@ -33,7 +35,7 @@ class _MyHomePageState extends State<MyHomePage> {
               future: futureFoodItems,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator());
                 } else if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
                 } else {
@@ -55,14 +57,14 @@ class _MyHomePageState extends State<MyHomePage> {
               future: futureUserMeals,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator());
                 } else if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
                 } else {
                   return ListView(
                     children: snapshot.data!.map((userMeal) {
                       return ListTile(
-                        title: Text('${userMeal.foodItem.name}'),
+                        title: Text(userMeal.foodItem.name),
                         subtitle: Text('${userMeal.quantity} ${userMeal.foodItem.quantityUnit} at ${userMeal.datetime}'),
                       );
                     }).toList(),

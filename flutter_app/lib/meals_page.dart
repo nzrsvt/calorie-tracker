@@ -4,6 +4,8 @@ import 'models.dart';
 import 'package:intl/intl.dart';
 
 class MealsPage extends StatefulWidget {
+  const MealsPage({super.key});
+
   @override
   _MealsPageState createState() => _MealsPageState();
 }
@@ -33,24 +35,24 @@ class _MealsPageState extends State<MealsPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Edit Meal Quantity'),
+          title: const Text('Edit Meal Quantity'),
           content: TextField(
             controller: quantityController,
             keyboardType: TextInputType.number,
-            decoration: InputDecoration(labelText: 'Quantity'),
+            decoration: const InputDecoration(labelText: 'Quantity'),
           ),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
             ),
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop(double.tryParse(quantityController.text));
               },
-              child: Text('Save'),
+              child: const Text('Save'),
             ),
           ],
         );
@@ -76,36 +78,36 @@ class _MealsPageState extends State<MealsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Meals'),
+        title: const Text('Meals'),
       ),
       body: FutureBuilder<List<UserMeal>>(
         future: futureUserMeals,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('No meals found.'));
+            return const Center(child: Text('No meals found.'));
           } else {
             List<UserMeal> todayMeals = _filterMealsByToday(snapshot.data!);
             if (todayMeals.isEmpty) {
-              return Center(child: Text('No meals found for today.'));
+              return const Center(child: Text('No meals found for today.'));
             } else {
               return ListView(
                 children: todayMeals.map((userMeal) {
                   return ListTile(
-                    title: Text('${userMeal.foodItem.name}'),
+                    title: Text(userMeal.foodItem.name),
                     subtitle: Text('${userMeal.quantity} ${userMeal.foodItem.quantityUnit} at ${DateFormat('HH:mm').format(userMeal.datetime)}'),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: Icon(Icons.edit),
+                          icon: const Icon(Icons.edit),
                           onPressed: () => _editMeal(userMeal),
                         ),
                         IconButton(
-                          icon: Icon(Icons.delete),
+                          icon: const Icon(Icons.delete),
                           onPressed: () => _deleteMeal(userMeal.id),
                         ),
                       ],
