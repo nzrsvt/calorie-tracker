@@ -48,7 +48,8 @@ class UserMeal(models.Model):
     food_item = models.ForeignKey(FoodItem, on_delete=models.CASCADE, related_name='meals')
     datetime = models.DateTimeField(auto_now_add=True)
 
-    quantity = models.FloatField()  
+    quantity = models.FloatField() 
+    portion_calories = models.FloatField(editable=False) 
 
     class Meta:
         ordering = ['-datetime']
@@ -58,5 +59,8 @@ class UserMeal(models.Model):
             raise ValidationError(_('Quantity must be positive'))
 
     def save(self, *args, **kwargs):
-        self.clean()
+        self.portion_calories = self.calculate_portion_calories()
         super().save(*args, **kwargs)
+    
+    def calculate_portion_calories(self):
+        return (self.quantity / self.food_item.portion_size) * self.food_item.calories

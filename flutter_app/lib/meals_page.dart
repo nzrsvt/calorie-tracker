@@ -57,6 +57,7 @@ class _MealsPageState extends State<MealsPage> {
           ],
         );
       },
+      
     );
 
     if (result != null) {
@@ -64,6 +65,9 @@ class _MealsPageState extends State<MealsPage> {
         meal.quantity = result;
       });
       await apiService.updateUserMeal(meal);
+      setState(() {
+        futureUserMeals = apiService.fetchUserMeals();
+      });
     }
   }
 
@@ -98,7 +102,7 @@ class _MealsPageState extends State<MealsPage> {
                 children: todayMeals.map((userMeal) {
                   return ListTile(
                     title: Text(userMeal.foodItem.name),
-                    subtitle: Text('${userMeal.quantity} ${userMeal.foodItem.quantityUnit} at ${DateFormat('HH:mm').format(userMeal.datetime)}'),
+                    subtitle: Text('${userMeal.quantity} ${userMeal.foodItem.quantityUnit}, ${userMeal.portionCalories} kkal at ${DateFormat('HH:mm').format(userMeal.datetime)}'),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [

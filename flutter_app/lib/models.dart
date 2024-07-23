@@ -58,6 +58,7 @@ class UserMeal {
   double quantity;
   final DateTime datetime;
   final String owner;
+  final double portionCalories;
 
   UserMeal({
     required this.id,
@@ -65,6 +66,7 @@ class UserMeal {
     required this.quantity,
     required this.datetime,
     required this.owner,
+    required this.portionCalories,
   });
 
   factory UserMeal.fromJson(Map<String, dynamic> json) {
@@ -74,6 +76,7 @@ class UserMeal {
       quantity: json['quantity'],
       datetime: DateTime.parse(json['datetime']),
       owner: json['owner'],
+      portionCalories: json['portion_calories'],
     );
   }
 
@@ -84,6 +87,7 @@ class UserMeal {
       'quantity': quantity,
       'datetime': datetime.toIso8601String(),
       'owner': owner,
+      'portion_calories': portionCalories,
     };
   }
 }

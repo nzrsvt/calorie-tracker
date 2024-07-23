@@ -156,26 +156,20 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
             Text('Fat: ${widget.foodItem.fat} g', style: const TextStyle(fontSize: 18)),
             Text('Carbohydrates: ${widget.foodItem.carbohydrates} g', style: const TextStyle(fontSize: 18)),
             const SizedBox(height: 20),
-            TextField(
-              controller: _portionSizeController,
-              decoration: const InputDecoration(
-                labelText: 'Portion Size',
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            DropdownButton<String>(
-              value: _selectedUnit,
-              items: <String>['g', 'ml', 'pcs'].map((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-              onChanged: (newValue) {
-                setState(() {
-                  _selectedUnit = newValue!;
-                });
-              },
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _portionSizeController,
+                    decoration: const InputDecoration(
+                      labelText: 'Portion Size',
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(widget.foodItem.quantityUnit, style: const TextStyle(fontSize: 18)),
+              ],
             ),
             const SizedBox(height: 20),
             ElevatedButton(

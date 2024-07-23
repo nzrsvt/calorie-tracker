@@ -19,5 +19,5 @@ class UserMealSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = UserMeal
-        fields = ['id', 'owner', 'food_item', 'food_item_detail', 'quantity', 'datetime']
+        fields = ['id', 'owner', 'food_item', 'food_item_detail', 'quantity', 'datetime', 'portion_calories']
         depth = 1
