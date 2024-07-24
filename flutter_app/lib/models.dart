@@ -1,3 +1,67 @@
+class UserProfile {
+  final String username;
+  final String email;
+  final String gender;
+  final int age;
+  final int height;
+  final double weight;
+  final String activityLevel;
+  final String goal;
+  final double calorieIntake;
+  final double proteinIntake;
+  final double fatIntake;
+  final double carbohydrateIntake;
+
+  UserProfile({
+    required this.username,
+    required this.email,
+    required this.gender,
+    required this.age,
+    required this.height,
+    required this.weight,
+    required this.activityLevel,
+    required this.goal,
+    required this.calorieIntake,
+    required this.proteinIntake,
+    required this.fatIntake,
+    required this.carbohydrateIntake,
+  });
+
+  factory UserProfile.fromJson(Map<String, dynamic> json) {
+    return UserProfile(
+      username: json['username'],
+      email: json['email'],
+      gender: json['gender'],
+      age: json['age'],
+      height: json['height'],
+      weight: json['weight'].toDouble(),
+      activityLevel: json['activity_level'],
+      goal: json['goal'],
+      calorieIntake: json['calorie_intake'].toDouble(),
+      proteinIntake: json['protein_intake'].toDouble(),
+      fatIntake: json['fat_intake'].toDouble(),
+      carbohydrateIntake: json['carbohydrate_intake'].toDouble(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'username': username,
+      'email': email,
+      'gender': gender,
+      'age': age,
+      'height': height,
+      'weight': weight,
+      'activity_level': activityLevel,
+      'goal': goal,
+      'calorie_intake': calorieIntake,
+      'protein_intake': proteinIntake,
+      'fat_intake': fatIntake,
+      'carbohydrate_intake': carbohydrateIntake,
+    };
+  }
+}
+
 class FoodItem {
   final int id;
   final String name;

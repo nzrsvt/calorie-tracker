@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from tracker.models import FoodItem, UserMeal
+from tracker.models import FoodItem, UserMeal, UserProfile
 
 
 class FoodItemSerializer(serializers.ModelSerializer):

@@ -6,14 +6,22 @@ class AuthService {
   final String baseUrl = 'http://10.0.2.2:8000';
   final storage = const FlutterSecureStorage();
 
-  Future<void> register(String username, String email, String password) async {
+  Future<void> register(String username, String email, String password, String gender, int age, int height, double weight, String activityLevel, String goal) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/register/'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
+      Uri.parse('$baseUrl/api/register/'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, dynamic>{
         'username': username,
         'email': email,
         'password': password,
+        'gender': gender,
+        'age': age,
+        'height': height,
+        'weight': weight,
+        'activity_level': activityLevel,
+        'goal': goal,
       }),
     );
 
