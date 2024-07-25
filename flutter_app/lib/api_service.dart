@@ -147,4 +147,13 @@ class ApiService {
       throw Exception('Failed to delete meal');
     }
   }
+
+  Future<UserProfile> fetchUserProfile() async {
+    final response = await _get('$baseUrl/userprofile/');
+    if (response.statusCode == 200) {
+      return UserProfile.fromJson(jsonDecode(response.body)['results'][0]);
+    } else {
+      throw Exception('Failed to load user profile');
+    }
+  }
 }

@@ -1,10 +1,17 @@
 from django.shortcuts import render
 from rest_framework import viewsets, permissions, filters
 from .permissions import IsOwnerOrReadOnly
-from .models import FoodItem, UserMeal
-from .serializers import FoodItemSerializer, UserMealSerializer
+from .models import FoodItem, UserMeal, UserProfile
+from .serializers import FoodItemSerializer, UserMealSerializer, UserProfileSerializer
 
+class UserProfileViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = UserProfile.objects.all()
+    serializer_class = UserProfileSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
+    def get_queryset(self):
+        return UserProfile.objects.filter(id=self.request.user.id)
+    
 class FoodItemViewSet(viewsets.ModelViewSet):
     queryset = FoodItem.objects.all()
     serializer_class = FoodItemSerializer

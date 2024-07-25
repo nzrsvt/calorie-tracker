@@ -3,6 +3,11 @@ from rest_framework import serializers
 from tracker.models import FoodItem, UserMeal, UserProfile
 
 
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = '__all__'
+
 class FoodItemSerializer(serializers.ModelSerializer):
     owner = serializers.ReadOnlyField(source='owner.username')
 
@@ -19,5 +24,5 @@ class UserMealSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = UserMeal
-        fields = ['id', 'owner', 'food_item', 'food_item_detail', 'quantity', 'datetime', 'portion_calories']
+        fields = ['id', 'owner', 'food_item', 'food_item_detail', 'quantity', 'datetime', 'portion_calories', 'portion_fat', 'portion_carbohydrates', 'portion_proteins']
         depth = 1

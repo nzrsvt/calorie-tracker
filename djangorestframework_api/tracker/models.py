@@ -54,16 +54,38 @@ class UserProfile(AbstractUser):
         }
         ka = activity_factors[self.activity_level]
 
+        protein_percent = 0.25
+        fat_percent = 0.30
+        carb_percent = 0.45
+
         if self.goal == 'L':
             self.calorie_intake = (bmr * ka) - 500
+            protein_percent += 0.05
+            fat_percent -= 0.05
         elif self.goal == 'M':
             self.calorie_intake = bmr * ka
         else:  # 'G'
             self.calorie_intake = (bmr * ka) + 500
+            carb_percent += 0.05
+            protein_percent -= 0.05
 
-        self.protein_intake = (self.calorie_intake * 0.25) / 4
-        self.fat_intake = (self.calorie_intake * 0.30) / 9
-        self.carbohydrate_intake = (self.calorie_intake * 0.45) / 4
+        if self.activity_level in ['V', 'E']:  # Very active or Extra active
+            protein_percent += 0.05
+            carb_percent += 0.05
+            fat_percent -= 0.10
+
+        if self.age > 50:
+            protein_percent += 0.05
+            fat_percent -= 0.05
+
+        if self.gender == 'F':
+            fat_percent += 0.05
+            carb_percent -= 0.05
+
+        self.protein_intake = round((self.calorie_intake * protein_percent) / 4, 1)
+        self.fat_intake = round((self.calorie_intake * fat_percent) / 9, 1)
+        self.carbohydrate_intake = round((self.calorie_intake * carb_percent) / 4, 1)
+        self.calorie_intake = round(self.calorie_intake, 1)
 
 class FoodItem(models.Model):
     owner = models.ForeignKey(
@@ -102,7 +124,6 @@ class FoodItem(models.Model):
 
     def __str__(self):
         return f"{self.producer} {self.name} ({self.calories} kcal per {self.portion_size} {self.quantity_unit})"
-    
 
 class UserMeal(models.Model):
     owner = models.ForeignKey(
@@ -111,7 +132,10 @@ class UserMeal(models.Model):
     datetime = models.DateTimeField(auto_now_add=True)
 
     quantity = models.FloatField() 
-    portion_calories = models.FloatField(editable=False) 
+    portion_calories = models.FloatField(editable=False)
+    portion_fat = models.FloatField(editable=False)
+    portion_carbohydrates = models.FloatField(editable=False)
+    portion_proteins = models.FloatField(editable=False)
 
     class Meta:
         ordering = ['-datetime']
@@ -122,7 +146,19 @@ class UserMeal(models.Model):
 
     def save(self, *args, **kwargs):
         self.portion_calories = self.calculate_portion_calories()
+        self.portion_fat = self.calculate_portion_fat()
+        self.portion_carbohydrates = self.calculate_portion_carbohydrates()
+        self.portion_proteins = self.calculate_portion_proteins()
         super().save(*args, **kwargs)
     
     def calculate_portion_calories(self):
         return (self.quantity / self.food_item.portion_size) * self.food_item.calories
+
+    def calculate_portion_fat(self):
+        return (self.quantity / self.food_item.portion_size) * self.food_item.fat
+
+    def calculate_portion_carbohydrates(self):
+        return (self.quantity / self.food_item.portion_size) * self.food_item.carbohydrates
+
+    def calculate_portion_proteins(self):
+        return (self.quantity / self.food_item.portion_size) * self.food_item.protein

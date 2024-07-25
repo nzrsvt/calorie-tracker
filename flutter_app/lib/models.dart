@@ -123,6 +123,9 @@ class UserMeal {
   final DateTime datetime;
   final String owner;
   final double portionCalories;
+  final double portionFat;
+  final double portionCarbohydrates;
+  final double portionProteins;
 
   UserMeal({
     required this.id,
@@ -131,6 +134,9 @@ class UserMeal {
     required this.datetime,
     required this.owner,
     required this.portionCalories,
+    required this.portionFat,
+    required this.portionCarbohydrates,
+    required this.portionProteins,
   });
 
   factory UserMeal.fromJson(Map<String, dynamic> json) {
@@ -141,6 +147,9 @@ class UserMeal {
       datetime: DateTime.parse(json['datetime']),
       owner: json['owner'],
       portionCalories: json['portion_calories'],
+      portionFat: json['portion_fat'],
+      portionCarbohydrates: json['portion_carbohydrates'],
+      portionProteins: json['portion_proteins'],
     );
   }
 
@@ -152,6 +161,9 @@ class UserMeal {
       'datetime': datetime.toIso8601String(),
       'owner': owner,
       'portion_calories': portionCalories,
+      'portion_fat': portionFat,
+      'portion_carbohydrates': portionCarbohydrates,
+      'portion_proteins': portionProteins,
     };
   }
 }
