@@ -3,6 +3,11 @@ from rest_framework import viewsets, permissions, filters
 from .permissions import IsOwnerOrReadOnly
 from .models import FoodItem, UserMeal, UserProfile
 from .serializers import FoodItemSerializer, UserMealSerializer, UserProfileSerializer
+from django.utils import timezone
+from django.utils.dateparse import parse_datetime
+from datetime import datetime, timedelta
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 class UserProfileViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = UserProfile.objects.all()
@@ -35,3 +40,13 @@ class UserMealViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
+
+    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def today(self, request):
+        now = timezone.now()
+        today_start = datetime.combine(now, datetime.min.time())
+        today_end = today_start + timedelta(days=1)
+
+        queryset = self.get_queryset().filter(datetime__range=(today_start, today_end))
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)

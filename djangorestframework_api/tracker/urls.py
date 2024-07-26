@@ -11,4 +11,5 @@ router.register(r'userprofile', views.UserProfileViewSet, basename='userprofile'
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('usermeals/today/', views.UserMealViewSet.as_view({'get': 'today'}), name='usermeals-today'),
 ]

@@ -134,6 +134,16 @@ class ApiService {
     }
   }
 
+  Future<List<UserMeal>> fetchTodayUserMeals() async {
+    final response = await _get('$baseUrl/usermeals/today/');
+    if (response.statusCode == 200) {
+      List jsonResponse = jsonDecode(response.body);
+      return jsonResponse.map((data) => UserMeal.fromJson(data)).toList();
+    } else {
+      throw Exception('Failed to load todays user meals');
+    }
+  }
+
   Future<void> updateUserMeal(UserMeal meal) async {
     final response = await _put('$baseUrl/usermeals/${meal.id}/', meal.toJson());
     if (response.statusCode != 200) {

@@ -11,14 +11,14 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final ApiService apiService = ApiService();
-  late Future<List<UserMeal>> futureUserMeals;
+  late Future<List<UserMeal>> futureTodayUserMeals;
   late Future<UserProfile> futureUserProfile;
 
   @override
   void initState() {
     super.initState();
-    futureUserMeals = apiService.fetchUserMeals();
-    futureUserProfile = apiService.fetchUserProfile(); // Fetch user profile
+    futureTodayUserMeals = apiService.fetchTodayUserMeals();
+    futureUserProfile = apiService.fetchUserProfile(); 
   }
 
   @override
@@ -28,20 +28,20 @@ class _MyHomePageState extends State<MyHomePage> {
         title: const Text('Calorie Tracker'),
       ),
       body: FutureBuilder(
-        future: Future.wait([futureUserMeals, futureUserProfile]),
+        future: Future.wait([futureTodayUserMeals, futureUserProfile]),
         builder: (context, AsyncSnapshot<List<dynamic>> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else {
-            List<UserMeal> userMeals = snapshot.data![0];
+            List<UserMeal> todayUserMeals = snapshot.data![0];
             UserProfile userProfile = snapshot.data![1];
 
-            double totalCalories = userMeals.fold(0, (sum, meal) => sum + meal.portionCalories);
-            double totalFat = userMeals.fold(0, (sum, meal) => sum + meal.portionFat);
-            double totalCarbohydrates = userMeals.fold(0, (sum, meal) => sum + meal.portionCarbohydrates);
-            double totalProteins = userMeals.fold(0, (sum, meal) => sum + meal.portionProteins);
+            double totalCalories = todayUserMeals.fold(0, (sum, meal) => sum + meal.portionCalories);
+            double totalFat = todayUserMeals.fold(0, (sum, meal) => sum + meal.portionFat);
+            double totalCarbohydrates = todayUserMeals.fold(0, (sum, meal) => sum + meal.portionCarbohydrates);
+            double totalProteins = todayUserMeals.fold(0, (sum, meal) => sum + meal.portionProteins);
 
             double calorieProgress = totalCalories / userProfile.calorieIntake;
             double fatProgress = totalFat / userProfile.fatIntake;
@@ -57,7 +57,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       value: calorieProgress,
                       text: '${totalCalories.toStringAsFixed(0)}/${userProfile.calorieIntake.toStringAsFixed(0)} kcal',
                       label: 'Calories',
-                      size: 100.0, // Розмір круга
+                      size: 100.0, 
                     ),
                   ),
                 ),
@@ -70,19 +70,19 @@ class _MyHomePageState extends State<MyHomePage> {
                         value: fatProgress,
                         text: '${totalFat.toStringAsFixed(0)}/${userProfile.fatIntake.toStringAsFixed(0)} g',
                         label: 'Fat',
-                        size: 80.0, // Розмір круга
+                        size: 80.0, 
                       ),
                       CircularProgressIndicatorWithText(
                         value: carbProgress,
                         text: '${totalCarbohydrates.toStringAsFixed(0)}/${userProfile.carbohydrateIntake.toStringAsFixed(0)} g',
                         label: 'Carbs',
-                        size: 80.0, // Розмір круга
+                        size: 80.0, 
                       ),
                       CircularProgressIndicatorWithText(
                         value: proteinProgress,
                         text: '${totalProteins.toStringAsFixed(0)}/${userProfile.proteinIntake.toStringAsFixed(0)} g',
                         label: 'Proteins',
-                        size: 80.0, // Розмір круга
+                        size: 80.0, 
                       ),
                     ],
                   ),
@@ -106,7 +106,7 @@ class CircularProgressIndicatorWithText extends StatelessWidget {
     required this.value,
     required this.text,
     required this.label,
-    required this.size, // Доданий параметр для розміру
+    required this.size, 
     Key? key,
   }) : super(key: key);
 
@@ -123,14 +123,14 @@ class CircularProgressIndicatorWithText extends StatelessWidget {
               width: size,
               child: CircularProgressIndicator(
                 value: value,
-                strokeWidth: 8.0, // Товщина круга
+                strokeWidth: 8.0,
               ),
             ),
-            Text(text, style: const TextStyle(fontSize: 16)), // Розмір тексту
+            Text(text, style: const TextStyle(fontSize: 16)), 
           ],
         ),
         const SizedBox(height: 8),
-        Text(label, style: const TextStyle(fontSize: 20)), // Розмір підпису
+        Text(label, style: const TextStyle(fontSize: 20)), 
       ],
     );
   }

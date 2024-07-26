@@ -12,21 +12,12 @@ class MealsPage extends StatefulWidget {
 
 class _MealsPageState extends State<MealsPage> {
   final ApiService apiService = ApiService();
-  late Future<List<UserMeal>> futureUserMeals;
+  late Future<List<UserMeal>> futureTodayUserMeals;
 
   @override
   void initState() {
     super.initState();
-    futureUserMeals = apiService.fetchUserMeals();
-  }
-
-  List<UserMeal> _filterMealsByToday(List<UserMeal> meals) {
-    DateTime now = DateTime.now();
-    return meals.where((meal) {
-      return meal.datetime.year == now.year &&
-             meal.datetime.month == now.month &&
-             meal.datetime.day == now.day;
-    }).toList();
+    futureTodayUserMeals = apiService.fetchTodayUserMeals();
   }
 
   void _editMeal(UserMeal meal) async {
@@ -66,7 +57,7 @@ class _MealsPageState extends State<MealsPage> {
       });
       await apiService.updateUserMeal(meal);
       setState(() {
-        futureUserMeals = apiService.fetchUserMeals();
+        futureTodayUserMeals = apiService.fetchTodayUserMeals();
       });
     }
   }
@@ -74,7 +65,7 @@ class _MealsPageState extends State<MealsPage> {
   void _deleteMeal(int mealId) async {
     await apiService.deleteUserMeal(mealId);
     setState(() {
-      futureUserMeals = apiService.fetchUserMeals();
+      futureTodayUserMeals = apiService.fetchTodayUserMeals();
     });
   }
 
@@ -85,7 +76,7 @@ class _MealsPageState extends State<MealsPage> {
         title: const Text('Meals'),
       ),
       body: FutureBuilder<List<UserMeal>>(
-        future: futureUserMeals,
+        future: futureTodayUserMeals,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -94,7 +85,7 @@ class _MealsPageState extends State<MealsPage> {
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(child: Text('No meals found.'));
           } else {
-            List<UserMeal> todayMeals = _filterMealsByToday(snapshot.data!);
+            List<UserMeal> todayMeals = snapshot.data!;
             if (todayMeals.isEmpty) {
               return const Center(child: Text('No meals found for today.'));
             } else {
