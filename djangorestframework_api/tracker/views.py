@@ -9,13 +9,16 @@ from datetime import datetime, timedelta
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-class UserProfileViewSet(viewsets.ReadOnlyModelViewSet):
+class UserProfileViewSet(viewsets.ModelViewSet):
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         return UserProfile.objects.filter(id=self.request.user.id)
+
+    def perform_update(self, serializer):
+        serializer.save(user=self.request.user)
     
 class FoodItemViewSet(viewsets.ModelViewSet):
     queryset = FoodItem.objects.all()

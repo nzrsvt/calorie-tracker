@@ -4,6 +4,7 @@ import 'register_page.dart';
 import 'home_page.dart';
 import 'search_page.dart'; 
 import 'meals_page.dart';
+import 'profile_page.dart';
 import 'splash_screen.dart';
 
 void main() {
@@ -44,7 +45,8 @@ class _MainScreenState extends State<MainScreen> {
   static final List<Widget> _widgetOptions = <Widget>[
     const MyHomePage(),
     const SearchPage(),  
-    const MealsPage(), 
+    const MealsPage(),
+    const ProfilePage(),
   ];
 
   void _onItemTapped(int index) {
@@ -58,6 +60,7 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       body: _widgetOptions.elementAt(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed, 
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
@@ -70,6 +73,10 @@ class _MainScreenState extends State<MainScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.restaurant),
             label: 'Meals',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
           ),
         ],
         currentIndex: _selectedIndex,

@@ -6,7 +6,8 @@ from tracker.models import FoodItem, UserMeal, UserProfile
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
-        fields = '__all__'
+        fields = ['id', 'username', 'email', 'gender', 'age', 'height', 'weight', 'activity_level', 'goal', 'calorie_intake', 'protein_intake', 'fat_intake', 'carbohydrate_intake']
+        read_only_fields = ['id', 'username', 'email', 'calorie_intake', 'protein_intake', 'fat_intake', 'carbohydrate_intake']
 
 class FoodItemSerializer(serializers.ModelSerializer):
     owner = serializers.ReadOnlyField(source='owner.username')

@@ -166,4 +166,11 @@ class ApiService {
       throw Exception('Failed to load user profile');
     }
   }
+
+  Future<void> updateUserProfile(UserProfile profile) async {
+    final response = await _put('$baseUrl/userprofile/${profile.id}/', profile.toJson());
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update profile');
+    }
+  }
 }
