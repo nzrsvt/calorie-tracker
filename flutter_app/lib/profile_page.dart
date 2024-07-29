@@ -19,90 +19,154 @@ class _ProfilePageState extends State<ProfilePage> {
     futureUserProfile = apiService.fetchUserProfile();
   }
 
-  void _editUserProfile(UserProfile profile) async {
-    final TextEditingController genderController = TextEditingController(text: profile.gender);
-    final TextEditingController ageController = TextEditingController(text: profile.age.toString());
-    final TextEditingController heightController = TextEditingController(text: profile.height.toString());
-    final TextEditingController weightController = TextEditingController(text: profile.weight.toString());
-    final TextEditingController activityLevelController = TextEditingController(text: profile.activityLevel);
-    final TextEditingController goalController = TextEditingController(text: profile.goal);
+  void _editField(UserProfile profile, String field, String fieldType) async {
+    TextEditingController controller = TextEditingController();
+    String dropdownValue = '';
+
+    if (fieldType == 'number') {
+      if (field == 'age') controller.text = profile.age.toString();
+      if (field == 'height') controller.text = profile.height.toString();
+      if (field == 'weight') controller.text = profile.weight.toString();
+    } else if (fieldType == 'dropdown') {
+      if (field == 'gender') dropdownValue = profile.gender;
+      if (field == 'activityLevel') dropdownValue = profile.activityLevel;
+      if (field == 'goal') dropdownValue = profile.goal;
+    }
 
     final result = await showDialog<UserProfile>(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Edit Profile'),
-          content: SingleChildScrollView(
-            child: Column(
-              children: [
-                TextField(
-                  controller: genderController,
-                  decoration: const InputDecoration(labelText: 'Gender'),
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('Edit $field'),
+              content: SingleChildScrollView(
+                child: fieldType == 'number'
+                    ? Column(
+                        children: [
+                          TextField(
+                            controller: controller,
+                            keyboardType: field == 'weight' 
+                                ? TextInputType.numberWithOptions(decimal: true)
+                                : TextInputType.number,
+                            decoration: InputDecoration(labelText: field),
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              IconButton(
+                                icon: Icon(Icons.remove),
+                                onPressed: () {
+                                  setState(() {
+                                    double currentValue = double.tryParse(controller.text) ?? 0;
+                                    controller.text = (currentValue - 1).toStringAsFixed(field == 'weight' ? 1 : 0);
+                                  });
+                                },
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.add),
+                                onPressed: () {
+                                  setState(() {
+                                    double currentValue = double.tryParse(controller.text) ?? 0;
+                                    controller.text = (currentValue + 1).toStringAsFixed(field == 'weight' ? 1 : 0);
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                      )
+                    : DropdownButton<String>(
+                        value: dropdownValue,
+                        items: (field == 'gender'
+                                ? ['M', 'F']
+                                : field == 'activityLevel'
+                                    ? ['S', 'L', 'M', 'V', 'E']
+                                    : ['L', 'M', 'G'])
+                            .map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(_getFullText(field, value)),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            dropdownValue = newValue!;
+                          });
+                        },
+                      ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Cancel'),
                 ),
-                TextField(
-                  controller: ageController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Age'),
-                ),
-                TextField(
-                  controller: heightController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Height (cm)'),
-                ),
-                TextField(
-                  controller: weightController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Weight (kg)'),
-                ),
-                TextField(
-                  controller: activityLevelController,
-                  decoration: const InputDecoration(labelText: 'Activity Level'),
-                ),
-                TextField(
-                  controller: goalController,
-                  decoration: const InputDecoration(labelText: 'Goal'),
+                ElevatedButton(
+                  onPressed: () {
+                    UserProfile updatedProfile = UserProfile(
+                      id: profile.id,
+                      username: profile.username,
+                      email: profile.email,
+                      gender: field == 'gender' ? dropdownValue : profile.gender,
+                      age: field == 'age' ? int.tryParse(controller.text) ?? profile.age : profile.age,
+                      height: field == 'height' ? int.tryParse(controller.text) ?? profile.height : profile.height,
+                      weight: field == 'weight' ? double.tryParse(controller.text) ?? profile.weight : profile.weight,
+                      activityLevel: field == 'activityLevel' ? dropdownValue : profile.activityLevel,
+                      goal: field == 'goal' ? dropdownValue : profile.goal,
+                      calorieIntake: profile.calorieIntake,
+                      proteinIntake: profile.proteinIntake,
+                      fatIntake: profile.fatIntake,
+                      carbohydrateIntake: profile.carbohydrateIntake,
+                    );
+                    Navigator.of(context).pop(updatedProfile);
+                  },
+                  child: const Text('Save'),
                 ),
               ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                UserProfile updatedProfile = UserProfile(
-                  id: profile.id,
-                  username: profile.username,
-                  email: profile.email,
-                  gender: genderController.text,
-                  age: int.tryParse(ageController.text) ?? profile.age,
-                  height: int.tryParse(heightController.text) ?? profile.height,
-                  weight: double.tryParse(weightController.text) ?? profile.weight,
-                  activityLevel: activityLevelController.text,
-                  goal: goalController.text,
-                  calorieIntake: profile.calorieIntake,
-                  proteinIntake: profile.proteinIntake,
-                  fatIntake: profile.fatIntake,
-                  carbohydrateIntake: profile.carbohydrateIntake,
-                );
-                Navigator.of(context).pop(updatedProfile);
-              },
-              child: const Text('Save'),
-            ),
-          ],
+            );
+          },
         );
       },
     );
 
     if (result != null) {
-      await apiService.updateUserProfile(result);
-      setState(() {
-        futureUserProfile = apiService.fetchUserProfile();
-      });
+      try {
+        await apiService.updateUserProfile(result);
+        setState(() {
+          futureUserProfile = apiService.fetchUserProfile();
+        });
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update profile: $e')),
+        );
+      }
+    }
+  }
+
+  String _getFullText(String field, String value) {
+    switch (field) {
+      case 'gender':
+        return value == 'M' ? 'Male' : 'Female';
+      case 'activityLevel':
+        switch (value) {
+          case 'S': return 'Sedentary';
+          case 'L': return 'Lightly active';
+          case 'M': return 'Moderately active';
+          case 'V': return 'Very active';
+          case 'E': return 'Extra active';
+          default: return value;
+        }
+      case 'goal':
+        switch (value) {
+          case 'L': return 'Weight loss';
+          case 'M': return 'Weight maintenance';
+          case 'G': return 'Weight gain';
+          default: return value;
+        }
+      default:
+        return value;
     }
   }
 
@@ -125,31 +189,34 @@ class _ProfilePageState extends State<ProfilePage> {
             UserProfile userProfile = snapshot.data!;
             return Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: ListView(
                 children: [
-                  Text('Gender: ${userProfile.gender}', style: const TextStyle(fontSize: 18)),
-                  const SizedBox(height: 8),
-                  Text('Age: ${userProfile.age}', style: const TextStyle(fontSize: 18)),
-                  const SizedBox(height: 8),
-                  Text('Height: ${userProfile.height} cm', style: const TextStyle(fontSize: 18)),
-                  const SizedBox(height: 8),
-                  Text('Weight: ${userProfile.weight} kg', style: const TextStyle(fontSize: 18)),
-                  const SizedBox(height: 8),
-                  Text('Activity Level: ${userProfile.activityLevel}', style: const TextStyle(fontSize: 18)),
-                  const SizedBox(height: 8),
-                  Text('Goal: ${userProfile.goal}', style: const TextStyle(fontSize: 18)),
-                  const SizedBox(height: 8),
-                  ElevatedButton(
-                    onPressed: () => _editUserProfile(userProfile),
-                    child: const Text('Edit Profile'),
-                  ),
+                  _buildListTile('Gender', _getFullText('gender', userProfile.gender), () => _editField(userProfile, 'gender', 'dropdown')),
+                  _buildListTile('Age', '${userProfile.age} years', () => _editField(userProfile, 'age', 'number')),
+                  _buildListTile('Height', '${userProfile.height} cm', () => _editField(userProfile, 'height', 'number')),
+                  _buildListTile('Weight', '${userProfile.weight} kg', () => _editField(userProfile, 'weight', 'number')),
+                  _buildListTile('Activity Level', _getFullText('activityLevel', userProfile.activityLevel), () => _editField(userProfile, 'activityLevel', 'dropdown')),
+                  _buildListTile('Goal', _getFullText('goal', userProfile.goal), () => _editField(userProfile, 'goal', 'dropdown')),
+                  _buildListTile('Calorie Intake', '${userProfile.calorieIntake.toStringAsFixed(1)} kcal', null),
+                  _buildListTile('Protein Intake', '${userProfile.proteinIntake.toStringAsFixed(1)} g', null),
+                  _buildListTile('Fat Intake', '${userProfile.fatIntake.toStringAsFixed(1)} g', null),
+                  _buildListTile('Carbohydrate Intake', '${userProfile.carbohydrateIntake.toStringAsFixed(1)} g', null),
                 ],
               ),
             );
           }
         },
       ),
+    );
+  }
+
+  Widget _buildListTile(String title, String value, VoidCallback? onEdit) {
+    return ListTile(
+      title: Text('$title: $value', style: const TextStyle(fontSize: 18)),
+      trailing: onEdit != null ? IconButton(
+        icon: Icon(Icons.edit),
+        onPressed: onEdit,
+      ) : null,
     );
   }
 }
