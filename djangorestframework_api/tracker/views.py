@@ -29,7 +29,6 @@ class FoodItemViewSet(viewsets.ModelViewSet):
     search_fields = ["name", "producer",]
 
     def perform_create(self, serializer):
-        print(f'User creating FoodItem: {self.request.user}')
         serializer.save(owner=self.request.user)
 
 class UserMealViewSet(viewsets.ModelViewSet):
