@@ -47,7 +47,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           TextField(
                             controller: controller,
                             keyboardType: field == 'weight' 
-                                ? TextInputType.numberWithOptions(decimal: true)
+                                ? const TextInputType.numberWithOptions(decimal: true)
                                 : TextInputType.number,
                             decoration: InputDecoration(labelText: field),
                           ),
@@ -55,7 +55,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
                               IconButton(
-                                icon: Icon(Icons.remove),
+                                icon: const Icon(Icons.remove),
                                 onPressed: () {
                                   setState(() {
                                     double currentValue = double.tryParse(controller.text) ?? 0;
@@ -64,7 +64,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 },
                               ),
                               IconButton(
-                                icon: Icon(Icons.add),
+                                icon: const Icon(Icons.add),
                                 onPressed: () {
                                   setState(() {
                                     double currentValue = double.tryParse(controller.text) ?? 0;
@@ -98,12 +98,10 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               actions: [
                 TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
+                  onPressed: () => Navigator.of(context).pop(),
                   child: const Text('Cancel'),
                 ),
-                ElevatedButton(
+                FilledButton(
                   onPressed: () {
                     UserProfile updatedProfile = UserProfile(
                       id: profile.id,
@@ -175,6 +173,7 @@ class _ProfilePageState extends State<ProfilePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile'),
+        elevation: 0,
       ),
       body: FutureBuilder<UserProfile>(
         future: futureUserProfile,
@@ -187,22 +186,33 @@ class _ProfilePageState extends State<ProfilePage> {
             return const Center(child: Text('No user profile found.'));
           } else {
             UserProfile userProfile = snapshot.data!;
-            return Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: ListView(
-                children: [
-                  _buildListTile('Gender', _getFullText('gender', userProfile.gender), () => _editField(userProfile, 'gender', 'dropdown')),
-                  _buildListTile('Age', '${userProfile.age} years', () => _editField(userProfile, 'age', 'number')),
-                  _buildListTile('Height', '${userProfile.height} cm', () => _editField(userProfile, 'height', 'number')),
-                  _buildListTile('Weight', '${userProfile.weight} kg', () => _editField(userProfile, 'weight', 'number')),
-                  _buildListTile('Activity Level', _getFullText('activityLevel', userProfile.activityLevel), () => _editField(userProfile, 'activityLevel', 'dropdown')),
-                  _buildListTile('Goal', _getFullText('goal', userProfile.goal), () => _editField(userProfile, 'goal', 'dropdown')),
-                  _buildListTile('Calorie Intake', '${userProfile.calorieIntake.toStringAsFixed(1)} kcal', null),
-                  _buildListTile('Protein Intake', '${userProfile.proteinIntake.toStringAsFixed(1)} g', null),
-                  _buildListTile('Fat Intake', '${userProfile.fatIntake.toStringAsFixed(1)} g', null),
-                  _buildListTile('Carbohydrate Intake', '${userProfile.carbohydrateIntake.toStringAsFixed(1)} g', null),
-                ],
-              ),
+            return ListView(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    'Personal Information',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ),
+                _buildListTile('Gender', _getFullText('gender', userProfile.gender), () => _editField(userProfile, 'gender', 'dropdown')),
+                _buildListTile('Age', '${userProfile.age} years', () => _editField(userProfile, 'age', 'number')),
+                _buildListTile('Height', '${userProfile.height} cm', () => _editField(userProfile, 'height', 'number')),
+                _buildListTile('Weight', '${userProfile.weight} kg', () => _editField(userProfile, 'weight', 'number')),
+                _buildListTile('Activity Level', _getFullText('activityLevel', userProfile.activityLevel), () => _editField(userProfile, 'activityLevel', 'dropdown')),
+                _buildListTile('Goal', _getFullText('goal', userProfile.goal), () => _editField(userProfile, 'goal', 'dropdown')),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    'Nutrition Goals',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ),
+                _buildListTile('Calorie Intake', '${userProfile.calorieIntake.toStringAsFixed(1)} kcal', null),
+                _buildListTile('Protein Intake', '${userProfile.proteinIntake.toStringAsFixed(1)} g', null),
+                _buildListTile('Fat Intake', '${userProfile.fatIntake.toStringAsFixed(1)} g', null),
+                _buildListTile('Carbohydrate Intake', '${userProfile.carbohydrateIntake.toStringAsFixed(1)} g', null),
+              ],
             );
           }
         },
@@ -212,9 +222,10 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget _buildListTile(String title, String value, VoidCallback? onEdit) {
     return ListTile(
-      title: Text('$title: $value', style: const TextStyle(fontSize: 18)),
+      title: Text(title, style: Theme.of(context).textTheme.titleMedium),
+      subtitle: Text(value, style: Theme.of(context).textTheme.bodyLarge),
       trailing: onEdit != null ? IconButton(
-        icon: Icon(Icons.edit),
+        icon: const Icon(Icons.edit_outlined),
         onPressed: onEdit,
       ) : null,
     );

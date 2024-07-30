@@ -70,7 +70,7 @@ class FoodItem {
   final int id;
   final String name;
   final String producer;
-  final int calories;
+  final double calories;
   final double protein;
   final double fat;
   final double carbohydrates;

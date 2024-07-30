@@ -20,8 +20,13 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _weightController = TextEditingController();
   String _activityLevel = 'S';
   String _goal = 'L';
+  bool _isLoading = false;
 
   void _register() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
       await _authService.register(
         _usernameController.text,
@@ -39,7 +44,16 @@ class _RegisterPageState extends State<RegisterPage> {
         MaterialPageRoute(builder: (context) => const LoginPage()),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to register')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Failed to register'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -48,79 +62,114 @@ class _RegisterPageState extends State<RegisterPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Register'),
+        centerTitle: true,
+        elevation: 0,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      body: SafeArea(
         child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              TextField(
-                controller: _usernameController,
-                decoration: const InputDecoration(labelText: 'Username'),
+              Text(
+                'Create Account',
+                style: Theme.of(context).textTheme.headlineMedium,
+                textAlign: TextAlign.center,
               ),
-              TextField(
-                controller: _passwordController,
-                decoration: const InputDecoration(labelText: 'Password'),
-                obscureText: true,
-              ),
-              TextField(
-                controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Email'),
-              ),
-              TextField(
-                controller: _genderController,
-                decoration: const InputDecoration(labelText: 'Gender (M/F)'),
-              ),
-              TextField(
-                controller: _ageController,
-                decoration: const InputDecoration(labelText: 'Age'),
-                keyboardType: TextInputType.number,
-              ),
-              TextField(
-                controller: _heightController,
-                decoration: const InputDecoration(labelText: 'Height (cm)'),
-                keyboardType: TextInputType.number,
-              ),
-              TextField(
-                controller: _weightController,
-                decoration: const InputDecoration(labelText: 'Weight (kg)'),
-                keyboardType: TextInputType.number,
-              ),
-              DropdownButton<String>(
-                value: _activityLevel,
-                items: const [
-                  DropdownMenuItem(value: 'S', child: Text('Sedentary')),
-                  DropdownMenuItem(value: 'L', child: Text('Lightly active')),
-                  DropdownMenuItem(value: 'M', child: Text('Moderately active')),
-                  DropdownMenuItem(value: 'V', child: Text('Very active')),
-                  DropdownMenuItem(value: 'E', child: Text('Extra active')),
-                ],
-                onChanged: (value) {
-                  setState(() {
-                    _activityLevel = value!;
-                  });
+              const SizedBox(height: 24),
+              _buildTextField(_usernameController, 'Username', Icons.person),
+              const SizedBox(height: 16),
+              _buildTextField(_passwordController, 'Password', Icons.lock, isPassword: true),
+              const SizedBox(height: 16),
+              _buildTextField(_emailController, 'Email', Icons.email),
+              const SizedBox(height: 16),
+              _buildTextField(_genderController, 'Gender (M/F)', Icons.wc),
+              const SizedBox(height: 16),
+              _buildTextField(_ageController, 'Age', Icons.cake, isNumber: true),
+              const SizedBox(height: 16),
+              _buildTextField(_heightController, 'Height (cm)', Icons.height, isNumber: true),
+              const SizedBox(height: 16),
+              _buildTextField(_weightController, 'Weight (kg)', Icons.fitness_center, isNumber: true),
+              const SizedBox(height: 24),
+              _buildDropdown(
+                'Activity Level',
+                _activityLevel,
+                {
+                  'S': 'Sedentary',
+                  'L': 'Lightly active',
+                  'M': 'Moderately active',
+                  'V': 'Very active',
+                  'E': 'Extra active',
                 },
+                (value) => setState(() => _activityLevel = value!),
               ),
-              DropdownButton<String>(
-                value: _goal,
-                items: const [
-                  DropdownMenuItem(value: 'L', child: Text('Weight loss')),
-                  DropdownMenuItem(value: 'M', child: Text('Weight maintenance')),
-                  DropdownMenuItem(value: 'G', child: Text('Weight gain')),
-                ],
-                onChanged: (value) {
-                  setState(() {
-                    _goal = value!;
-                  });
+              const SizedBox(height: 16),
+              _buildDropdown(
+                'Goal',
+                _goal,
+                {
+                  'L': 'Weight loss',
+                  'M': 'Weight maintenance',
+                  'G': 'Weight gain',
                 },
+                (value) => setState(() => _goal = value!),
               ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _register,
-                child: const Text('Register'),
+              const SizedBox(height: 32),
+              FilledButton(
+                onPressed: _isLoading ? null : _register,
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : const Text('Register'),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label, IconData icon, {bool isPassword = false, bool isNumber = false}) {
+    return TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      obscureText: isPassword,
+      keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+    );
+  }
+
+  Widget _buildDropdown(String label, String value, Map<String, String> items, void Function(String?) onChanged) {
+    return InputDecorator(
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: value,
+          isDense: true,
+          isExpanded: true,
+          items: items.entries.map((entry) {
+            return DropdownMenuItem<String>(
+              value: entry.key,
+              child: Text(entry.value),
+            );
+          }).toList(),
+          onChanged: onChanged,
         ),
       ),
     );

@@ -55,40 +55,36 @@ class _SearchPageState extends State<SearchPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Search'),
+        elevation: 0,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            TextField(
+            SearchBar(
               controller: _searchController,
-              decoration: InputDecoration(
-                labelText: 'Search for food',
-                suffixIcon: IconButton(
+              hintText: 'Search for food',
+              onSubmitted: (_) => _searchFoodItems(),
+              trailing: [
+                IconButton(
                   icon: const Icon(Icons.search),
                   onPressed: _searchFoodItems,
                 ),
-              ),
+              ],
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
+            const SizedBox(height: 16),
+            FilledButton.icon(
               onPressed: _navigateToAddFoodItem,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-              ),
-              child: const Text(
-                'Create your own food',
-                style: TextStyle(fontSize: 18),
-              ),
+              icon: const Icon(Icons.add),
+              label: const Text('Create your own food'),
             ),
-            const SizedBox(height: 20),
-            _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _errorMessage.isNotEmpty
-                    ? Center(child: Text(_errorMessage))
-                    : Expanded(
-                        child: ListView.builder(
+            const SizedBox(height: 16),
+            Expanded(
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _errorMessage.isNotEmpty
+                      ? Center(child: Text(_errorMessage))
+                      : ListView.builder(
                           itemCount: _searchResults.length,
                           itemBuilder: (context, index) {
                             FoodItem foodItem = _searchResults[index];
@@ -99,7 +95,7 @@ class _SearchPageState extends State<SearchPage> {
                             );
                           },
                         ),
-                      ),
+            ),
           ],
         ),
       ),
@@ -142,37 +138,44 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${widget.foodItem.name} Details'),
+        title: Text(widget.foodItem.name),
+        elevation: 0,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Name: ${widget.foodItem.name}', style: const TextStyle(fontSize: 18)),
-            Text('Producer: ${widget.foodItem.producer}', style: const TextStyle(fontSize: 18)),
-            Text('Calories: ${widget.foodItem.calories} kcal', style: const TextStyle(fontSize: 18)),
-            Text('Protein: ${widget.foodItem.protein} g', style: const TextStyle(fontSize: 18)),
-            Text('Fat: ${widget.foodItem.fat} g', style: const TextStyle(fontSize: 18)),
-            Text('Carbohydrates: ${widget.foodItem.carbohydrates} g', style: const TextStyle(fontSize: 18)),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _portionSizeController,
-                    decoration: const InputDecoration(
-                      labelText: 'Portion Size',
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Producer: ${widget.foodItem.producer}', style: Theme.of(context).textTheme.bodyLarge),
+                    const SizedBox(height: 8),
+                    Text('Calories: ${widget.foodItem.calories} kcal', style: Theme.of(context).textTheme.bodyLarge),
+                    const SizedBox(height: 8),
+                    Text('Protein: ${widget.foodItem.protein} g', style: Theme.of(context).textTheme.bodyLarge),
+                    const SizedBox(height: 8),
+                    Text('Fat: ${widget.foodItem.fat} g', style: Theme.of(context).textTheme.bodyLarge),
+                    const SizedBox(height: 8),
+                    Text('Carbohydrates: ${widget.foodItem.carbohydrates} g', style: Theme.of(context).textTheme.bodyLarge),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                Text(widget.foodItem.quantityUnit, style: const TextStyle(fontSize: 18)),
-              ],
+              ),
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
+            const SizedBox(height: 16),
+            TextField(
+              controller: _portionSizeController,
+              decoration: InputDecoration(
+                labelText: 'Portion Size',
+                suffixText: widget.foodItem.quantityUnit,
+              ),
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 16),
+            FilledButton(
               onPressed: _addMeal,
               child: const Text('Add Meal'),
             ),
@@ -225,83 +228,68 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add Food Item'),
+        elevation: 0,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Name',
-                ),
-              ),
-              TextField(
-                controller: _producerController,
-                decoration: const InputDecoration(
-                  labelText: 'Producer',
-                ),
-              ),
-              TextField(
-                controller: _caloriesController,
-                decoration: const InputDecoration(
-                  labelText: 'Calories',
-                ),
-                keyboardType: TextInputType.number,
-              ),
-              TextField(
-                controller: _proteinController,
-                decoration: const InputDecoration(
-                  labelText: 'Protein (optional)',
-                ),
-                keyboardType: TextInputType.number,
-              ),
-              TextField(
-                controller: _fatController,
-                decoration: const InputDecoration(
-                  labelText: 'Fat (optional)',
-                ),
-                keyboardType: TextInputType.number,
-              ),
-              TextField(
-                controller: _carbohydratesController,
-                decoration: const InputDecoration(
-                  labelText: 'Carbohydrates (optional)',
-                ),
-                keyboardType: TextInputType.number,
-              ),
-              TextField(
-                controller: _portionSizeController,
-                decoration: const InputDecoration(
-                  labelText: 'Portion Size',
-                ),
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 10),
-              const Text('Quantity Unit'),
-              DropdownButton<String>(
-                value: _selectedUnit,
-                items: <String>['g', 'ml', 'pcs'].map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (newValue) {
-                  setState(() {
-                    _selectedUnit = newValue!;
-                  });
-                },
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _addFoodItem,
-                child: const Text('Add Food Item'),
-              ),
-            ],
-          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(labelText: 'Name'),
+            ),
+            TextField(
+              controller: _producerController,
+              decoration: const InputDecoration(labelText: 'Producer'),
+            ),
+            TextField(
+              controller: _caloriesController,
+              decoration: const InputDecoration(labelText: 'Calories'),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: _proteinController,
+              decoration: const InputDecoration(labelText: 'Protein (optional)'),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: _fatController,
+              decoration: const InputDecoration(labelText: 'Fat (optional)'),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: _carbohydratesController,
+              decoration: const InputDecoration(labelText: 'Carbohydrates (optional)'),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: _portionSizeController,
+              decoration: const InputDecoration(labelText: 'Portion Size'),
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              value: _selectedUnit,
+              decoration: const InputDecoration(labelText: 'Quantity Unit'),
+              items: <String>['g', 'ml', 'pcs'].map((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              onChanged: (newValue) {
+                setState(() {
+                  _selectedUnit = newValue!;
+                });
+              },
+            ),
+            const SizedBox(height: 24),
+            FilledButton(
+              onPressed: _addFoodItem,
+              child: const Text('Add Food Item'),
+            ),
+          ],
         ),
       ),
     );

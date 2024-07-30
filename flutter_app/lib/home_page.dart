@@ -18,7 +18,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     futureTodayUserMeals = apiService.fetchTodayUserMeals();
-    futureUserProfile = apiService.fetchUserProfile(); 
+    futureUserProfile = apiService.fetchUserProfile();
   }
 
   @override
@@ -26,6 +26,8 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Calorie Tracker'),
+        centerTitle: true,
+        elevation: 0,
       ),
       body: FutureBuilder(
         future: Future.wait([futureTodayUserMeals, futureUserProfile]),
@@ -48,46 +50,34 @@ class _MyHomePageState extends State<MyHomePage> {
             double carbProgress = totalCarbohydrates / userProfile.carbohydrateIntake;
             double proteinProgress = totalProteins / userProfile.proteinIntake;
 
-            return Column(
-              children: [
-                Flexible(
-                  flex: 1,
-                  child: Center(
-                    child: CircularProgressIndicatorWithText(
-                      value: calorieProgress,
-                      text: '${totalCalories.toStringAsFixed(0)}/${userProfile.calorieIntake.toStringAsFixed(0)} kcal',
-                      label: 'Calories',
-                      size: 100.0, 
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Today\'s Summary',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: 24),
+                  Expanded(
+                    child: NutritionProgressCard(
+                      calorieProgress: calorieProgress,
+                      totalCalories: totalCalories,
+                      targetCalories: userProfile.calorieIntake,
+                      fatProgress: fatProgress,
+                      totalFat: totalFat,
+                      targetFat: userProfile.fatIntake,
+                      carbProgress: carbProgress,
+                      totalCarbs: totalCarbohydrates,
+                      targetCarbs: userProfile.carbohydrateIntake,
+                      proteinProgress: proteinProgress,
+                      totalProtein: totalProteins,
+                      targetProtein: userProfile.proteinIntake,
                     ),
                   ),
-                ),
-                Flexible(
-                  flex: 1,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      CircularProgressIndicatorWithText(
-                        value: fatProgress,
-                        text: '${totalFat.toStringAsFixed(0)}/${userProfile.fatIntake.toStringAsFixed(0)} g',
-                        label: 'Fat',
-                        size: 80.0, 
-                      ),
-                      CircularProgressIndicatorWithText(
-                        value: carbProgress,
-                        text: '${totalCarbohydrates.toStringAsFixed(0)}/${userProfile.carbohydrateIntake.toStringAsFixed(0)} g',
-                        label: 'Carbs',
-                        size: 80.0, 
-                      ),
-                      CircularProgressIndicatorWithText(
-                        value: proteinProgress,
-                        text: '${totalProteins.toStringAsFixed(0)}/${userProfile.proteinIntake.toStringAsFixed(0)} g',
-                        label: 'Proteins',
-                        size: 80.0, 
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+                ],
+              ),
             );
           }
         },
@@ -96,41 +86,144 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-class CircularProgressIndicatorWithText extends StatelessWidget {
-  final double value;
-  final String text;
-  final String label;
-  final double size;
+class NutritionProgressCard extends StatelessWidget {
+  final double calorieProgress;
+  final double totalCalories;
+  final double targetCalories;
+  final double fatProgress;
+  final double totalFat;
+  final double targetFat;
+  final double carbProgress;
+  final double totalCarbs;
+  final double targetCarbs;
+  final double proteinProgress;
+  final double totalProtein;
+  final double targetProtein;
 
-  const CircularProgressIndicatorWithText({
-    required this.value,
-    required this.text,
-    required this.label,
-    required this.size, 
+  const NutritionProgressCard({
     Key? key,
+    required this.calorieProgress,
+    required this.totalCalories,
+    required this.targetCalories,
+    required this.fatProgress,
+    required this.totalFat,
+    required this.targetFat,
+    required this.carbProgress,
+    required this.totalCarbs,
+    required this.targetCarbs,
+    required this.proteinProgress,
+    required this.totalProtein,
+    required this.targetProtein,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Calories',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 8),
+            LinearProgressIndicator(
+              value: calorieProgress,
+              minHeight: 8,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '${totalCalories.toStringAsFixed(0)} / ${targetCalories.toStringAsFixed(0)} kcal',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Macronutrients',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: NutrientProgressIndicator(
+                    label: 'Fat',
+                    progress: fatProgress,
+                    total: totalFat,
+                    target: targetFat,
+                    color: Colors.orange,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: NutrientProgressIndicator(
+                    label: 'Carbs',
+                    progress: carbProgress,
+                    total: totalCarbs,
+                    target: targetCarbs,
+                    color: Colors.green,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: NutrientProgressIndicator(
+                    label: 'Protein',
+                    progress: proteinProgress,
+                    total: totalProtein,
+                    target: targetProtein,
+                    color: Colors.red,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class NutrientProgressIndicator extends StatelessWidget {
+  final String label;
+  final double progress;
+  final double total;
+  final double target;
+  final Color color;
+
+  const NutrientProgressIndicator({
+    Key? key,
+    required this.label,
+    required this.progress,
+    required this.total,
+    required this.target,
+    required this.color,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            SizedBox(
-              height: size,
-              width: size,
-              child: CircularProgressIndicator(
-                value: value,
-                strokeWidth: 8.0,
-              ),
-            ),
-            Text(text, style: const TextStyle(fontSize: 16)), 
-          ],
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodyMedium,
         ),
         const SizedBox(height: 8),
-        Text(label, style: const TextStyle(fontSize: 20)), 
+        LinearProgressIndicator(
+          value: progress,
+          minHeight: 8,
+          borderRadius: BorderRadius.circular(4),
+          valueColor: AlwaysStoppedAnimation<Color>(color),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          '${total.toStringAsFixed(0)} / ${target.toStringAsFixed(0)} g',
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
       ],
     );
   }

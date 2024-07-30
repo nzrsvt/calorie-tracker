@@ -34,21 +34,16 @@ class _MealsPageState extends State<MealsPage> {
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              onPressed: () => Navigator.of(context).pop(),
               child: const Text('Cancel'),
             ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop(double.tryParse(quantityController.text));
-              },
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(double.tryParse(quantityController.text)),
               child: const Text('Save'),
             ),
           ],
         );
       },
-      
     );
 
     if (result != null) {
@@ -63,10 +58,32 @@ class _MealsPageState extends State<MealsPage> {
   }
 
   void _deleteMeal(int mealId) async {
-    await apiService.deleteUserMeal(mealId);
-    setState(() {
-      futureTodayUserMeals = apiService.fetchTodayUserMeals();
-    });
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Deletion'),
+          content: const Text('Are you sure you want to delete this meal?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirm == true) {
+      await apiService.deleteUserMeal(mealId);
+      setState(() {
+        futureTodayUserMeals = apiService.fetchTodayUserMeals();
+      });
+    }
   }
 
   @override
@@ -74,6 +91,7 @@ class _MealsPageState extends State<MealsPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Meals'),
+        elevation: 0,
       ),
       body: FutureBuilder<List<UserMeal>>(
         future: futureTodayUserMeals,
@@ -83,34 +101,38 @@ class _MealsPageState extends State<MealsPage> {
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No meals found.'));
+            return const Center(child: Text('No meals found for today.'));
           } else {
             List<UserMeal> todayMeals = snapshot.data!;
-            if (todayMeals.isEmpty) {
-              return const Center(child: Text('No meals found for today.'));
-            } else {
-              return ListView(
-                children: todayMeals.map((userMeal) {
-                  return ListTile(
-                    title: Text(userMeal.foodItem.name),
-                    subtitle: Text('${userMeal.quantity} ${userMeal.foodItem.quantityUnit}, ${userMeal.portionCalories} kkal at ${DateFormat('HH:mm').format(userMeal.datetime)}'),
+            return ListView.builder(
+              itemCount: todayMeals.length,
+              itemBuilder: (context, index) {
+                UserMeal userMeal = todayMeals[index];
+                return Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  child: ListTile(
+                    title: Text(userMeal.foodItem.name, style: Theme.of(context).textTheme.titleMedium),
+                    subtitle: Text(
+                      '${userMeal.quantity} ${userMeal.foodItem.quantityUnit}, ${userMeal.portionCalories} kcal\n${DateFormat('HH:mm').format(userMeal.datetime)}',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.edit),
+                          icon: const Icon(Icons.edit_outlined),
                           onPressed: () => _editMeal(userMeal),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.delete),
+                          icon: const Icon(Icons.delete_outline),
                           onPressed: () => _deleteMeal(userMeal.id),
                         ),
                       ],
                     ),
-                  );
-                }).toList(),
-              );
-            }
+                  ),
+                );
+              },
+            );
           }
         },
       ),
