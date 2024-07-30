@@ -93,7 +93,7 @@ class FoodItem(models.Model):
     name = models.CharField(max_length=100)
     producer = models.CharField(max_length=100)
 
-    calories = models.PositiveIntegerField()
+    calories = models.FloatField()
     protein = models.FloatField(default=0)
     fat = models.FloatField(default=0)
     carbohydrates = models.FloatField(default=0)
