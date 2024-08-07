@@ -112,10 +112,11 @@ class ApiService {
     }
   }
 
-  Future<void> addUserMeal(int foodItemId, double quantity) async {
+  Future<void> addUserMeal(int foodItemId, double quantity, String mealType) async {
     final response = await _post('$baseUrl/usermeals/', {
       'food_item': foodItemId,
       'quantity': quantity,
+      'meal_type': mealType,
       'datetime': DateTime.now().toIso8601String(),
     });
 

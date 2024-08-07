@@ -17,7 +17,13 @@ class _MealsPageState extends State<MealsPage> {
   @override
   void initState() {
     super.initState();
-    futureTodayUserMeals = apiService.fetchTodayUserMeals();
+    _refreshMeals();
+  }
+
+  void _refreshMeals() {
+    setState(() {
+      futureTodayUserMeals = apiService.fetchTodayUserMeals();
+    });
   }
 
   void _editMeal(UserMeal meal) async {
@@ -47,17 +53,19 @@ class _MealsPageState extends State<MealsPage> {
     );
 
     if (result != null) {
-      setState(() {
+      try {
         meal.quantity = result;
-      });
-      await apiService.updateUserMeal(meal);
-      setState(() {
-        futureTodayUserMeals = apiService.fetchTodayUserMeals();
-      });
+        await apiService.updateUserMeal(meal);
+        _refreshMeals();
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update meal: $e')),
+        );
+      }
     }
   }
 
-  void _deleteMeal(int mealId) async {
+  void _deleteMeal(UserMeal meal) async {
     final bool? confirm = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
@@ -79,11 +87,108 @@ class _MealsPageState extends State<MealsPage> {
     );
 
     if (confirm == true) {
-      await apiService.deleteUserMeal(mealId);
-      setState(() {
-        futureTodayUserMeals = apiService.fetchTodayUserMeals();
-      });
+      try {
+        await apiService.deleteUserMeal(meal.id);
+        _refreshMeals();
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to delete meal: $e')),
+        );
+      }
     }
+  }
+
+  Widget _buildMealTypeSection(String mealType, List<UserMeal> meals) {
+    double totalCalories = 0;
+    double totalProtein = 0;
+    double totalCarbs = 0;
+    double totalFat = 0;
+
+    for (var meal in meals) {
+      totalCalories += meal.portionCalories;
+      totalProtein += meal.portionProteins;
+      totalCarbs += meal.portionCarbohydrates;
+      totalFat += meal.portionFat;
+    }
+
+    return Card(
+      margin: const EdgeInsets.all(8),
+      child: Column(
+        children: [
+          ListTile(
+            title: Text(mealType.replaceAll('_', ' ').capitalize(),
+              style: Theme.of(context).textTheme.titleLarge),
+            subtitle: Text(
+              'Calories: ${totalCalories.toStringAsFixed(1)} kcal\n'
+              'Protein: ${totalProtein.toStringAsFixed(1)}g, '
+              'Carbs: ${totalCarbs.toStringAsFixed(1)}g, '
+              'Fat: ${totalFat.toStringAsFixed(1)}g',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+          ...meals.map((meal) => _buildMealTile(meal)).toList(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMealTile(UserMeal userMeal) {
+    return ListTile(
+      title: Text(userMeal.foodItem.name, style: Theme.of(context).textTheme.titleMedium),
+      subtitle: Text(
+        '${userMeal.quantity} ${userMeal.foodItem.quantityUnit}, ${userMeal.portionCalories.toStringAsFixed(1)} kcal\n'
+        'P: ${userMeal.portionProteins.toStringAsFixed(1)}g, '
+        'C: ${userMeal.portionCarbohydrates.toStringAsFixed(1)}g, '
+        'F: ${userMeal.portionFat.toStringAsFixed(1)}g\n'
+        '${DateFormat('HH:mm').format(userMeal.datetime)}',
+        style: Theme.of(context).textTheme.bodySmall,
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.edit_outlined),
+            onPressed: () => _editMeal(userMeal),
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline),
+            onPressed: () => _deleteMeal(userMeal),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTotalSummary(List<UserMeal> allMeals) {
+    double totalCalories = 0;
+    double totalProtein = 0;
+    double totalCarbs = 0;
+    double totalFat = 0;
+
+    for (var meal in allMeals) {
+      totalCalories += meal.portionCalories;
+      totalProtein += meal.portionProteins;
+      totalCarbs += meal.portionCarbohydrates;
+      totalFat += meal.portionFat;
+    }
+
+    return Card(
+      margin: const EdgeInsets.all(8),
+      color: Theme.of(context).colorScheme.secondaryContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Total for Today', style: Theme.of(context).textTheme.titleLarge),            const SizedBox(height: 8),
+            Text('Calories: ${totalCalories.toStringAsFixed(1)} kcal'),
+            Text('Protein: ${totalProtein.toStringAsFixed(1)}g'),
+            Text('Carbohydrates: ${totalCarbs.toStringAsFixed(1)}g'),
+            Text('Fat: ${totalFat.toStringAsFixed(1)}g'),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -104,38 +209,37 @@ class _MealsPageState extends State<MealsPage> {
             return const Center(child: Text('No meals found for today.'));
           } else {
             List<UserMeal> todayMeals = snapshot.data!;
-            return ListView.builder(
-              itemCount: todayMeals.length,
-              itemBuilder: (context, index) {
-                UserMeal userMeal = todayMeals[index];
-                return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  child: ListTile(
-                    title: Text(userMeal.foodItem.name, style: Theme.of(context).textTheme.titleMedium),
-                    subtitle: Text(
-                      '${userMeal.quantity} ${userMeal.foodItem.quantityUnit}, ${userMeal.portionCalories} kcal\n${DateFormat('HH:mm').format(userMeal.datetime)}',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.edit_outlined),
-                          onPressed: () => _editMeal(userMeal),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete_outline),
-                          onPressed: () => _deleteMeal(userMeal.id),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
+            Map<String, List<UserMeal>> mealsByType = {
+              'breakfast': [],
+              'morning_snack': [],
+              'lunch': [],
+              'afternoon_snack': [],
+              'dinner': [],
+              'evening_snack': [],
+            };
+
+            for (var meal in todayMeals) {
+              mealsByType[meal.mealType]!.add(meal);
+            }
+
+            return ListView(
+              children: [
+                _buildTotalSummary(todayMeals),
+                ...mealsByType.entries
+                    .where((entry) => entry.value.isNotEmpty)
+                    .map((entry) => _buildMealTypeSection(entry.key, entry.value))
+                    .toList(),
+              ],
             );
           }
         },
       ),
     );
+  }
+}
+
+extension StringExtension on String {
+  String capitalize() {
+    return "${this[0].toUpperCase()}${substring(1)}";
   }
 }

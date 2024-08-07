@@ -126,10 +126,20 @@ class FoodItem(models.Model):
         return f"{self.producer} {self.name} ({self.calories} kcal per {self.portion_size} {self.quantity_unit})"
 
 class UserMeal(models.Model):
+    MEAL_TYPES = [
+        ('breakfast', 'Breakfast'),
+        ('morning_snack', 'Morning Snack'),
+        ('lunch', 'Lunch'),
+        ('afternoon_snack', 'Afternoon Snack'),
+        ('dinner', 'Dinner'),
+        ('evening_snack', 'Evening Snack')
+    ]
+
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL, related_name='meals', on_delete=models.CASCADE)
     food_item = models.ForeignKey(FoodItem, on_delete=models.CASCADE, related_name='meals')
     datetime = models.DateTimeField(auto_now_add=True)
+    meal_type = models.CharField(max_length=20, choices=MEAL_TYPES)
 
     quantity = models.FloatField() 
     portion_calories = models.FloatField(editable=False)

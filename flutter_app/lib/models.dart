@@ -126,6 +126,7 @@ class UserMeal {
   double quantity;
   final DateTime datetime;
   final String owner;
+  final String mealType;
   final double portionCalories;
   final double portionFat;
   final double portionCarbohydrates;
@@ -137,6 +138,7 @@ class UserMeal {
     required this.quantity,
     required this.datetime,
     required this.owner,
+    required this.mealType,
     required this.portionCalories,
     required this.portionFat,
     required this.portionCarbohydrates,
@@ -150,6 +152,7 @@ class UserMeal {
       quantity: json['quantity'],
       datetime: DateTime.parse(json['datetime']),
       owner: json['owner'],
+      mealType: json['meal_type'],
       portionCalories: json['portion_calories'],
       portionFat: json['portion_fat'],
       portionCarbohydrates: json['portion_carbohydrates'],
@@ -164,6 +167,7 @@ class UserMeal {
       'quantity': quantity,
       'datetime': datetime.toIso8601String(),
       'owner': owner,
+      'meal_type': mealType,
       'portion_calories': portionCalories,
       'portion_fat': portionFat,
       'portion_carbohydrates': portionCarbohydrates,

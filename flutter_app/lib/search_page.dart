@@ -116,6 +116,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
   final ApiService apiService = ApiService();
   final TextEditingController _portionSizeController = TextEditingController();
   String _selectedUnit = '';
+  String _selectedMealType = 'breakfast'; // Додано: початкове значення для типу прийому їжі
 
   @override
   void initState() {
@@ -126,7 +127,11 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
 
   void _addMeal() async {
     try {
-      await apiService.addUserMeal(widget.foodItem.id, double.parse(_portionSizeController.text));
+      await apiService.addUserMeal(
+        widget.foodItem.id,
+        double.parse(_portionSizeController.text),
+        _selectedMealType // Додано: передаємо вибраний тип прийому їжі
+      );
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Meal added successfully')));
       Navigator.pop(context);
     } catch (e) {
@@ -175,6 +180,29 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              value: _selectedMealType,
+              decoration: const InputDecoration(labelText: 'Meal Type'),
+              items: <String>[
+                'breakfast',
+                'morning_snack',
+                'lunch',
+                'afternoon_snack',
+                'dinner',
+                'evening_snack'
+              ].map((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value.replaceAll('_', ' ').capitalize()),
+                );
+              }).toList(),
+              onChanged: (newValue) {
+                setState(() {
+                  _selectedMealType = newValue!;
+                });
+              },
+            ),
+            const SizedBox(height: 16),
             FilledButton(
               onPressed: _addMeal,
               child: const Text('Add Meal'),
@@ -183,6 +211,12 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
         ),
       ),
     );
+  }
+}
+
+extension StringExtension on String {
+  String capitalize() {
+    return "${this[0].toUpperCase()}${this.substring(1)}";
   }
 }
 
@@ -295,3 +329,5 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
     );
   }
 }
+
+

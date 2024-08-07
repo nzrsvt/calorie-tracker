@@ -25,5 +25,5 @@ class UserMealSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = UserMeal
-        fields = ['id', 'owner', 'food_item', 'food_item_detail', 'quantity', 'datetime', 'portion_calories', 'portion_fat', 'portion_carbohydrates', 'portion_proteins']
+        fields = ['id', 'owner', 'food_item', 'food_item_detail', 'meal_type', 'quantity', 'datetime', 'portion_calories', 'portion_fat', 'portion_carbohydrates', 'portion_proteins']
         depth = 1
