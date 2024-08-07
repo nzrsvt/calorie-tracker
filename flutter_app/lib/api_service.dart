@@ -4,7 +4,7 @@ import 'auth_service.dart';
 import 'models.dart';
 
 class ApiService {
-  final String baseUrl = 'http://127.0.0.1:8000/';
+  final String baseUrl = 'http://10.0.2.2:8000';
   final AuthService _authService = AuthService();
 
   Future<Map<String, String>> _getHeaders() async {
@@ -69,7 +69,7 @@ class ApiService {
   Future<List<FoodItem>> fetchFoodItems() async {
     final response = await _get('$baseUrl/fooditems/');
     if (response.statusCode == 200) {
-      List jsonResponse = jsonDecode(response.body)['results'];
+      List jsonResponse = jsonDecode(utf8.decode(response.bodyBytes))['results'];
       return jsonResponse.map((data) => FoodItem.fromJson(data)).toList();
     } else {
       throw Exception('Failed to load food items');
@@ -79,7 +79,7 @@ class ApiService {
   Future<List<FoodItem>> searchFoodItems(String query) async {
     final response = await _get('$baseUrl/fooditems/?search=$query');
     if (response.statusCode == 200) {
-      List jsonResponse = jsonDecode(response.body)['results'];
+      List jsonResponse = jsonDecode(utf8.decode(response.bodyBytes))['results'];
       return jsonResponse.map((data) => FoodItem.fromJson(data)).toList();
     } else {
       throw Exception('Failed to load search results');
@@ -128,7 +128,7 @@ class ApiService {
   Future<List<UserMeal>> fetchUserMeals() async {
     final response = await _get('$baseUrl/usermeals/');
     if (response.statusCode == 200) {
-      List jsonResponse = jsonDecode(response.body)['results'];
+      List jsonResponse = jsonDecode(utf8.decode(response.bodyBytes))['results'];
       return jsonResponse.map((data) => UserMeal.fromJson(data)).toList();
     } else {
       throw Exception('Failed to load user meals');
@@ -138,7 +138,7 @@ class ApiService {
   Future<List<UserMeal>> fetchTodayUserMeals() async {
     final response = await _get('$baseUrl/usermeals/today/');
     if (response.statusCode == 200) {
-      List jsonResponse = jsonDecode(response.body);
+      List jsonResponse = jsonDecode(utf8.decode(response.bodyBytes));
       return jsonResponse.map((data) => UserMeal.fromJson(data)).toList();
     } else {
       throw Exception('Failed to load todays user meals');
