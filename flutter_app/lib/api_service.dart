@@ -174,4 +174,13 @@ class ApiService {
       throw Exception('Failed to update profile');
     }
   }
+
+  Future<Map<String, dynamic>> calculateNutritionalValue(String description) async {
+    final response = await _post('$baseUrl/fooditems/calculate_nutritional_value/', {'description': description});
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to calculate nutritional value');
+    }
+  }
 }

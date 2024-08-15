@@ -9,12 +9,28 @@ class SearchPage extends StatefulWidget {
   _SearchPageState createState() => _SearchPageState();
 }
 
-class _SearchPageState extends State<SearchPage> {
+class _SearchPageState extends State<SearchPage> with TickerProviderStateMixin {
   final ApiService apiService = ApiService();
   final TextEditingController _searchController = TextEditingController();
   List<FoodItem> _searchResults = [];
   bool _isLoading = false;
   String _errorMessage = '';
+  late AnimationController _aiButtonController;
+
+  @override
+  void initState() {
+    super.initState();
+    _aiButtonController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 5),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _aiButtonController.dispose();
+    super.dispose();
+  }
 
   void _searchFoodItems() async {
     setState(() {
@@ -34,6 +50,13 @@ class _SearchPageState extends State<SearchPage> {
         _isLoading = false;
       });
     }
+  }
+
+  void _navigateToAiAddFoodItem() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const AiAddFoodItemPage()),
+    );
   }
 
   void _navigateToFoodDetail(FoodItem foodItem) {
@@ -73,10 +96,32 @@ class _SearchPageState extends State<SearchPage> {
               ],
             ),
             const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: _navigateToAddFoodItem,
-              icon: const Icon(Icons.add),
-              label: const Text('Create your own food'),
+            Row(
+              children: [
+                FilledButton.icon(
+                  onPressed: _navigateToAddFoodItem,
+                  icon: const Icon(Icons.add),
+                  label: const Text('Create your own food'),
+                ),
+                const SizedBox(width: 16),
+                AnimatedBuilder(
+                  animation: _aiButtonController,
+                  builder: (context, child) {
+                    return FilledButton(
+                      onPressed: _navigateToAiAddFoodItem,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: HSLColor.fromAHSL(
+                          1.0,
+                          _aiButtonController.value * 360.0,
+                          0.5,
+                          0.5,
+                        ).toColor(),
+                      ),
+                      child: const Text('AI'),
+                    );
+                  },
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             Expanded(
@@ -330,4 +375,122 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
   }
 }
 
+class AiAddFoodItemPage extends StatefulWidget {
+  const AiAddFoodItemPage({super.key});
 
+  @override
+  _AiAddFoodItemPageState createState() => _AiAddFoodItemPageState();
+}
+
+class _AiAddFoodItemPageState extends State<AiAddFoodItemPage> {
+  final ApiService apiService = ApiService();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  double? _calories;
+  double? _protein;
+  double? _fat;
+  double? _carbohydrates;
+  bool _isLoading = false;
+  String _errorMessage = '';
+
+  void _calculateNutritionalValue() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = '';
+    });
+
+    try {
+      Map<String, dynamic> nutritionalData = await apiService.calculateNutritionalValue(_descriptionController.text);
+      setState(() {
+        _calories = nutritionalData['calories'];
+        _protein = nutritionalData['protein'];
+        _fat = nutritionalData['fat'];
+        _carbohydrates = nutritionalData['carbohydrates'];
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Failed to calculate nutritional value';
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _addFoodItem() async {
+    try {
+      await apiService.addFoodItem(
+        name: _nameController.text,
+        producer: 'AI-generated',
+        calories: _calories?.toInt() ?? 0,
+        protein: _protein ?? 0,
+        fat: _fat ?? 0,
+        carbohydrates: _carbohydrates ?? 0,
+        portionSize: 100,
+        quantityUnit: 'g',
+      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Food item added successfully')));
+      Navigator.pop(context);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to add food item')));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('AI-generated Food Item'),
+        elevation: 0,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(labelText: 'Name'),
+            ),
+            TextField(
+              controller: _descriptionController,
+              decoration: const InputDecoration(labelText: 'Description'),
+            ),
+            const SizedBox(height: 16),
+            FilledButton(
+              onPressed: _calculateNutritionalValue,
+              child: const Text('AI Calculation of Nutritional Value'),
+            ),
+            if (_calories != null)
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Calories: $_calories kcal', style: Theme.of(context).textTheme.bodyLarge),
+                      const SizedBox(height: 8),
+                      Text('Protein: $_protein g', style: Theme.of(context).textTheme.bodyLarge),
+                      const SizedBox(height: 8),
+                      Text('Fat: $_fat g', style: Theme.of(context).textTheme.bodyLarge),
+                      const SizedBox(height: 8),
+                      Text('Carbohydrates: $_carbohydrates g', style: Theme.of(context).textTheme.bodyLarge),
+                    ],
+                  ),
+                ),
+              ),
+            const SizedBox(height: 24),
+            if (_errorMessage.isNotEmpty)
+              Center(child: Text(_errorMessage, style: TextStyle(color: Colors.red))),
+            if (_isLoading)
+              const Center(child: CircularProgressIndicator()),
+            const SizedBox(height: 24),
+            FilledButton(
+              onPressed: _addFoodItem,
+              child: const Text('Add Food Item'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

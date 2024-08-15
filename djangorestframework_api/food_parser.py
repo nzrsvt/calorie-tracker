@@ -31,14 +31,17 @@ def parse_food_table(html_content):
         for row in rows:
             columns = row.find_all('td')
             if len(columns) > 1:
-                food_item = {
-                    'name': columns[0].text.strip(),
-                    'calories': float(columns[1].text.strip()),
-                    'protein': float(columns[2].text.strip()),
-                    'fat': float(columns[3].text.strip()),
-                    'carbohydrates': float(columns[4].text.strip()),
-                }
-                food_items.append(food_item)
+                try:
+                    food_item = {
+                        'name': columns[0].text.strip(),
+                        'calories': float(columns[1].text.strip()),
+                        'protein': float(columns[2].text.strip()),
+                        'fat': float(columns[3].text.strip()),
+                        'carbohydrates': float(columns[4].text.strip()),
+                    }
+                    food_items.append(food_item)
+                except ValueError as e:
+                    continue
     return food_items
 
 def save_food_items(food_items, owner):
@@ -46,12 +49,12 @@ def save_food_items(food_items, owner):
         food_item = FoodItem(
             owner=owner,
             name=item['name'],
-            producer='Unknown',  # Adjust accordingly
+            producer='tablycjakalorijnosti',  
             calories=item['calories'],
             protein=item['protein'],
             fat=item['fat'],
             carbohydrates=item['carbohydrates'],
-            portion_size=100,  # Adjust accordingly
+            portion_size=100,  
             quantity_unit=FoodItem.GRAMS
         )
         food_item.save()
@@ -76,9 +79,6 @@ def main():
         
         save_food_items(food_items, owner)
         page += 1
-
-        if page == 100:
-            break
 
 
 if __name__ == "__main__":
