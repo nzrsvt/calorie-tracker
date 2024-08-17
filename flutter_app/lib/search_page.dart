@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'api_service.dart';
 import 'models.dart';
+import 'dart:math' as math;
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -97,6 +98,7 @@ class _SearchPageState extends State<SearchPage> with TickerProviderStateMixin {
             ),
             const SizedBox(height: 16),
             Row(
+              mainAxisAlignment: MainAxisAlignment.center, // Вирівнювання по центру
               children: [
                 FilledButton.icon(
                   onPressed: _navigateToAddFoodItem,
@@ -406,7 +408,7 @@ class _AiAddFoodItemPageState extends State<AiAddFoodItemPage> {
         _protein = nutritionalData['protein'];
         _fat = nutritionalData['fat'];
         _carbohydrates = nutritionalData['carbohydrates'];
-        _isLoading = false;
+        _isLoading = false; 
       });
     } catch (e) {
       setState(() {
@@ -435,6 +437,10 @@ class _AiAddFoodItemPageState extends State<AiAddFoodItemPage> {
     }
   }
 
+  bool get _canAddFoodItem {
+    return _calories != null && _protein != null && _fat != null && _carbohydrates != null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -456,41 +462,128 @@ class _AiAddFoodItemPageState extends State<AiAddFoodItemPage> {
               decoration: const InputDecoration(labelText: 'Description'),
             ),
             const SizedBox(height: 16),
-            FilledButton(
-              onPressed: _calculateNutritionalValue,
-              child: const Text('AI Calculation of Nutritional Value'),
-            ),
-            if (_calories != null)
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Calories: $_calories kcal', style: Theme.of(context).textTheme.bodyLarge),
-                      const SizedBox(height: 8),
-                      Text('Protein: $_protein g', style: Theme.of(context).textTheme.bodyLarge),
-                      const SizedBox(height: 8),
-                      Text('Fat: $_fat g', style: Theme.of(context).textTheme.bodyLarge),
-                      const SizedBox(height: 8),
-                      Text('Carbohydrates: $_carbohydrates g', style: Theme.of(context).textTheme.bodyLarge),
-                    ],
-                  ),
-                ),
+            Center(
+              child: FilledButton(
+                onPressed: _calculateNutritionalValue,
+                child: const Text('AI Calculation of Nutritional Value'),
               ),
-            const SizedBox(height: 24),
-            if (_errorMessage.isNotEmpty)
-              Center(child: Text(_errorMessage, style: TextStyle(color: Colors.red))),
+            ),
+            const SizedBox(height: 16),
             if (_isLoading)
-              const Center(child: CircularProgressIndicator()),
+              const Center(child: CircularProgressIndicator())
+            else if (_errorMessage.isNotEmpty)
+              Center(child: Text(_errorMessage, style: TextStyle(color: Colors.red)))
+            else if (_calories != null)
+              NutrientPieChart(
+    calories: _calories!,
+    protein: _protein!,
+    fat: _fat!,
+    carbohydrates: _carbohydrates!,
+  ),
             const SizedBox(height: 24),
-            FilledButton(
-              onPressed: _addFoodItem,
-              child: const Text('Add Food Item'),
+              Center(
+                child: FilledButton(
+                onPressed: _canAddFoodItem ? _addFoodItem : null,
+                child: const Text('Add Food Item'),
+              ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class NutrientPieChart extends StatelessWidget {
+  final double calories;
+  final double protein;
+  final double fat;
+  final double carbohydrates;
+
+  const NutrientPieChart({
+    Key? key,
+    required this.calories,
+    required this.protein,
+    required this.fat,
+    required this.carbohydrates,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(
+          width: 200,
+          height: 200,
+          child: CustomPaint(
+            painter: PieChartPainter(protein: protein, fat: fat, carbohydrates: carbohydrates),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _LegendItem(color: Colors.red, label: 'Protein: ${protein.toStringAsFixed(1)}g'),
+            const SizedBox(width: 16),
+            _LegendItem(color: Colors.yellow, label: 'Fat: ${fat.toStringAsFixed(1)}g'),
+            const SizedBox(width: 16),
+            _LegendItem(color: Colors.blue, label: 'Carbs: ${carbohydrates.toStringAsFixed(1)}g'),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Text('Total Calories: ${calories.toStringAsFixed(1)} kcal', 
+             style: Theme.of(context).textTheme.titleLarge ?? Theme.of(context).textTheme.titleLarge),
+      ],
+    );
+  }
+}
+
+class PieChartPainter extends CustomPainter {
+  final double protein;
+  final double fat;
+  final double carbohydrates;
+
+  PieChartPainter({required this.protein, required this.fat, required this.carbohydrates});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final total = protein + fat + carbohydrates;
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = math.min(size.width, size.height) / 2;
+
+    var startAngle = -math.pi / 2;
+
+    void drawSector(double value, Color color) {
+      final sweepAngle = 2 * math.pi * (value / total);
+      final paint = Paint()..color = color;
+      canvas.drawArc(Rect.fromCircle(center: center, radius: radius),
+          startAngle, sweepAngle, true, paint);
+      startAngle += sweepAngle;
+    }
+
+    drawSector(protein, Colors.red);
+    drawSector(fat, Colors.yellow);
+    drawSector(carbohydrates, Colors.blue);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
+class _LegendItem extends StatelessWidget {
+  final Color color;
+  final String label;
+
+  const _LegendItem({Key? key, required this.color, required this.label}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(width: 16, height: 16, color: color),
+        const SizedBox(width: 4),
+        Text(label),
+      ],
     );
   }
 }
