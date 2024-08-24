@@ -17,8 +17,8 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    futureTodayUserMeals = apiService.fetchTodayUserMeals();
-    futureUserProfile = apiService.fetchUserProfile();
+    futureTodayUserMeals = apiService.fetchTodayUserMeals(context);
+    futureUserProfile = apiService.fetchUserProfile(context);
   }
 
   @override

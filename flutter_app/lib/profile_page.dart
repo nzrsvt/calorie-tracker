@@ -16,7 +16,7 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    futureUserProfile = apiService.fetchUserProfile();
+    futureUserProfile = apiService.fetchUserProfile(context);
   }
 
   void _editField(UserProfile profile, String field, String fieldType) async {
@@ -131,9 +131,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
     if (result != null) {
       try {
-        await apiService.updateUserProfile(result);
+        await apiService.updateUserProfile(context, result);
         setState(() {
-          futureUserProfile = apiService.fetchUserProfile();
+          futureUserProfile = apiService.fetchUserProfile(context);
         });
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(

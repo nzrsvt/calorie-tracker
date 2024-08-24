@@ -29,6 +29,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
     try {
       await _authService.register(
+        context,
         _usernameController.text,
         _emailController.text,
         _passwordController.text,

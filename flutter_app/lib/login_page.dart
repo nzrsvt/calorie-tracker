@@ -22,7 +22,7 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      await _authService.login(_usernameController.text, _passwordController.text);
+      await _authService.login(context, _usernameController.text, _passwordController.text);
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const MainScreen()),

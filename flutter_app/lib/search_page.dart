@@ -40,7 +40,7 @@ class _SearchPageState extends State<SearchPage> with TickerProviderStateMixin {
     });
 
     try {
-      List<FoodItem> results = await apiService.searchFoodItems(_searchController.text);
+      List<FoodItem> results = await apiService.searchFoodItems(context, _searchController.text);
       setState(() {
         _searchResults = results;
         _isLoading = false;
@@ -175,6 +175,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
   void _addMeal() async {
     try {
       await apiService.addUserMeal(
+        context,
         widget.foodItem.id,
         double.parse(_portionSizeController.text),
         _selectedMealType // Додано: передаємо вибраний тип прийому їжі
@@ -288,6 +289,7 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
   void _addFoodItem() async {
     try {
       await apiService.addFoodItem(
+        context,
         name: _nameController.text,
         producer: _producerController.text,
         calories: int.parse(_caloriesController.text),
@@ -402,7 +404,7 @@ class _AiAddFoodItemPageState extends State<AiAddFoodItemPage> {
     });
 
     try {
-      Map<String, dynamic> nutritionalData = await apiService.calculateNutritionalValue(_descriptionController.text);
+      Map<String, dynamic> nutritionalData = await apiService.calculateNutritionalValue(context, _descriptionController.text);
       setState(() {
         _calories = nutritionalData['calories'];
         _protein = nutritionalData['protein'];
@@ -421,6 +423,7 @@ class _AiAddFoodItemPageState extends State<AiAddFoodItemPage> {
   void _addFoodItem() async {
     try {
       await apiService.addFoodItem(
+        context,
         name: _nameController.text,
         producer: 'AI-generated',
         calories: _calories?.toInt() ?? 0,
@@ -445,7 +448,7 @@ class _AiAddFoodItemPageState extends State<AiAddFoodItemPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('AI-generated Food Item'),
+        title: const Text('AI nutrition calculator'),
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -460,6 +463,8 @@ class _AiAddFoodItemPageState extends State<AiAddFoodItemPage> {
             TextField(
               controller: _descriptionController,
               decoration: const InputDecoration(labelText: 'Description'),
+              maxLines: 9, 
+              minLines: 3,
             ),
             const SizedBox(height: 16),
             Center(
@@ -475,11 +480,11 @@ class _AiAddFoodItemPageState extends State<AiAddFoodItemPage> {
               Center(child: Text(_errorMessage, style: TextStyle(color: Colors.red)))
             else if (_calories != null)
               NutrientPieChart(
-    calories: _calories!,
-    protein: _protein!,
-    fat: _fat!,
-    carbohydrates: _carbohydrates!,
-  ),
+                calories: _calories!,
+                protein: _protein!,
+                fat: _fat!,
+                carbohydrates: _carbohydrates!,
+              ),
             const SizedBox(height: 24),
               Center(
                 child: FilledButton(

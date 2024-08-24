@@ -22,7 +22,7 @@ class _MealsPageState extends State<MealsPage> {
 
   void _refreshMeals() {
     setState(() {
-      futureTodayUserMeals = apiService.fetchTodayUserMeals();
+      futureTodayUserMeals = apiService.fetchTodayUserMeals(context);
     });
   }
 
@@ -55,7 +55,7 @@ class _MealsPageState extends State<MealsPage> {
     if (result != null) {
       try {
         meal.quantity = result;
-        await apiService.updateUserMeal(meal);
+        await apiService.updateUserMeal(context, meal);
         _refreshMeals();
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -88,7 +88,7 @@ class _MealsPageState extends State<MealsPage> {
 
     if (confirm == true) {
       try {
-        await apiService.deleteUserMeal(meal.id);
+        await apiService.deleteUserMeal(context, meal.id);
         _refreshMeals();
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
