@@ -212,4 +212,21 @@ class ApiService extends BaseRepository {
       }
     });
   }
+
+  Future<String> getAiAdvice(BuildContext context, String mealType) async {
+    return await call(context, () async {
+      final response = await _post(
+        context, 
+        '$baseUrl/usermeals/ai_advice/', 
+        {'meal_type': mealType}
+      );
+      
+      if (response.statusCode == 200) {
+        return response.body;
+      } else {
+        throw Exception('Failed to get AI advice');
+      }
+    });
+  }
+
 }

@@ -10,20 +10,83 @@ class MealsPage extends StatefulWidget {
   _MealsPageState createState() => _MealsPageState();
 }
 
-class _MealsPageState extends State<MealsPage> {
+class _MealsPageState extends State<MealsPage> with TickerProviderStateMixin {
   final ApiService apiService = ApiService();
   late Future<List<UserMeal>> futureTodayUserMeals;
+  late AnimationController _aiButtonController;
 
   @override
   void initState() {
     super.initState();
     _refreshMeals();
+    _initializeAnimationController();
+  }
+
+  void _initializeAnimationController() {
+    _aiButtonController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 5),
+    );
+    _aiButtonController.repeat();
+  }
+
+  @override
+  void dispose() {
+    _aiButtonController.dispose();
+    super.dispose();
   }
 
   void _refreshMeals() {
     setState(() {
       futureTodayUserMeals = apiService.fetchTodayUserMeals(context);
     });
+  }
+
+  void _showAiAdvice(BuildContext context, String mealType) async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return FutureBuilder<String>(
+          future: apiService.getAiAdvice(context, mealType),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const AlertDialog(
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 16),
+                    Text("Getting AI advice..."),
+                  ],
+                ),
+              );
+            } else if (snapshot.hasError) {
+              return AlertDialog(
+                title: const Text("Error"),
+                content: Text("Failed to get AI advice: ${snapshot.error}"),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text("OK"),
+                  ),
+                ],
+              );
+            } else {
+              return AlertDialog(
+                title: Text("AI Advice for ${mealType.replaceAll('_', ' ').capitalize()}"),
+                content: Text(snapshot.data ?? "No advice available"),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text("OK"),
+                  ),
+                ],
+              );
+            }
+          },
+        );
+      },
+    );
   }
 
   void _editMeal(UserMeal meal) async {
@@ -125,6 +188,21 @@ class _MealsPageState extends State<MealsPage> {
               'Fat: ${totalFat.toStringAsFixed(1)}g',
               style: Theme.of(context).textTheme.bodySmall,
             ),
+            trailing: AnimatedBuilder(
+              animation: _aiButtonController,
+              builder: (context, child) {
+                return IconButton(
+                  icon: const Icon(Icons.psychology),
+                  color: HSLColor.fromAHSL(
+                    1.0,
+                    _aiButtonController.value * 360.0,
+                    0.5,
+                    0.5,
+                  ).toColor(),
+                  onPressed: () => _showAiAdvice(context, mealType),
+                );
+              },
+            ),
           ),
           ...meals.map((meal) => _buildMealTile(meal)).toList(),
         ],
@@ -180,7 +258,28 @@ class _MealsPageState extends State<MealsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Total for Today', style: Theme.of(context).textTheme.titleLarge),            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Total for Today', style: Theme.of(context).textTheme.titleLarge),
+                AnimatedBuilder(
+                  animation: _aiButtonController,
+                  builder: (context, child) {
+                    return IconButton(
+                      icon: const Icon(Icons.psychology),
+                      color: HSLColor.fromAHSL(
+                        1.0,
+                        _aiButtonController.value * 360.0,
+                        0.5,
+                        0.5,
+                      ).toColor(),
+                      onPressed: () => _showAiAdvice(context, 'daily'),
+                    );
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
             Text('Calories: ${totalCalories.toStringAsFixed(1)} kcal'),
             Text('Protein: ${totalProtein.toStringAsFixed(1)}g'),
             Text('Carbohydrates: ${totalCarbs.toStringAsFixed(1)}g'),

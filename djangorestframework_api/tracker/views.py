@@ -107,3 +107,76 @@ class UserMealViewSet(viewsets.ModelViewSet):
         queryset = self.get_queryset().filter(datetime__range=(today_start, today_end))
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+    
+    @action(detail=False, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def ai_advice(self, request):
+        load_dotenv()
+        api_key = os.getenv("AI21_API_KEY")
+
+        client = AI21Client(api_key=api_key)
+
+        meal_type = request.data.get('meal_type')
+
+        now = timezone.now()
+        today_start = datetime.combine(now, datetime.min.time())
+        today_end = today_start + timedelta(days=1)
+
+        # Фільтруємо прийоми їжі за поточним користувачем і поточною датою
+        meal_food = self.get_queryset().filter(
+            datetime__range=(today_start, today_end),
+        )
+
+        # Формуємо опис для AI по всіх прийомах їжі з додаванням інформації про жири, білки та вуглеводи
+        meal_descriptions = [
+            f"{meal.food_item.name} ({meal.portion_fat}g fat, {meal.portion_proteins}g protein, {meal.portion_carbohydrates}g carbs) {meal.quantity} {meal.food_item.quantity_unit}"
+            for meal in meal_food
+        ]
+        food_description = ". ".join(meal_descriptions)
+
+        # Отримуємо профіль користувача
+        user_profile = UserProfile.objects.get(id=request.user.id)
+        
+        # Формуємо текст для AI, що включає характеристики користувача та всі прийоми їжі
+        user_characteristics = (
+            f"User details:\n"
+            f"Gender: {'Male' if user_profile.gender == 'M' else 'Female'}\n"
+            f"Age: {user_profile.age} years\n"
+            f"Height: {user_profile.height} cm\n"
+            f"Weight: {user_profile.weight} kg\n"
+            f"Activity Level: {dict(UserProfile.ACTIVITY_CHOICES).get(user_profile.activity_level)}\n"
+            f"Goal: {dict(UserProfile.GOAL_CHOICES).get(user_profile.goal)}\n"
+        )
+
+        # Включаємо поточний час доби в опис
+        current_time_of_day = now.strftime("%H:%M")
+        
+        # Формуємо повний промпт
+        full_prompt = (
+            "You are an AI nutritionist. Based on the following user details, the meals consumed today, and the current time of day, "
+            "provide a brief summary and advice on how to balance nutrition and optimize the user's diet for the current meal:\n"
+            f"Current time of day: {current_time_of_day}\n"
+            f"{user_characteristics}\n"
+            f"Meals consumed today: {food_description}\n"
+            f"Current meal: {meal_type}. "
+            "Your answer must containt only concise summary in 5-6 sentences about how to improve this meal and overall diet balance."
+        )
+        
+        print(full_prompt)
+        messages = [
+            ChatMessage(role="user", content=full_prompt)
+        ]
+
+        response = client.chat.completions.create(
+            model="jamba-instruct-preview",
+            messages=messages,
+            top_p=0.8,
+            temperature=0.1
+        )
+
+        full_response = response.dict()
+        assistant_content = full_response["choices"][0]["message"]["content"]
+        print(assistant_content)
+        return Response(assistant_content)
+
+
+
