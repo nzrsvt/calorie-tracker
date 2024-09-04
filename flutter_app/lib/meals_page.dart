@@ -74,7 +74,7 @@ class _MealsPageState extends State<MealsPage> with TickerProviderStateMixin {
             } else {
               return AlertDialog(
                 title: Text("AI Advice for ${mealType.replaceAll('_', ' ').capitalize()}"),
-                content: Text(snapshot.data ?? "No advice available"),
+                content: Text(snapshot.data!.replaceAll('"', '') ?? "No advice available"),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),

@@ -14,10 +14,10 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _genderController = TextEditingController();
   final TextEditingController _ageController = TextEditingController();
   final TextEditingController _heightController = TextEditingController();
   final TextEditingController _weightController = TextEditingController();
+  String _gender = 'M';
   String _activityLevel = 'S';
   String _goal = 'L';
   bool _isLoading = false;
@@ -33,7 +33,7 @@ class _RegisterPageState extends State<RegisterPage> {
         _usernameController.text,
         _emailController.text,
         _passwordController.text,
-        _genderController.text,
+        _gender,
         int.parse(_ageController.text),
         int.parse(_heightController.text),
         double.parse(_weightController.text),
@@ -56,6 +56,27 @@ class _RegisterPageState extends State<RegisterPage> {
         _isLoading = false;
       });
     }
+  }
+
+  void _showActivityInfo() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Activity Level Info'),
+        content: const Text(
+            '• Sedentary - little or no exercise\n'
+            '• Lightly active - light exercise/sports 1-3 days/week\n'
+            '• Moderately active - moderate exercise/sports 3-5 days/week\n'
+            '• Very active - hard exercise/sports 6-7 days a week\n'
+            '• Extra active - very hard exercise, physical job or training twice a day'),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -84,7 +105,15 @@ class _RegisterPageState extends State<RegisterPage> {
               const SizedBox(height: 16),
               _buildTextField(_emailController, 'Email', Icons.email),
               const SizedBox(height: 16),
-              _buildTextField(_genderController, 'Gender (M/F)', Icons.wc),
+              _buildDropdown(
+                'Gender',
+                _gender,
+                {
+                  'M': 'Male',
+                  'F': 'Female',
+                },
+                (value) => setState(() => _gender = value!),
+              ),
               const SizedBox(height: 16),
               _buildTextField(_ageController, 'Age', Icons.cake, isNumber: true),
               const SizedBox(height: 16),
@@ -92,7 +121,7 @@ class _RegisterPageState extends State<RegisterPage> {
               const SizedBox(height: 16),
               _buildTextField(_weightController, 'Weight (kg)', Icons.fitness_center, isNumber: true),
               const SizedBox(height: 24),
-              _buildDropdown(
+              _buildDropdownWithInfoIcon(
                 'Activity Level',
                 _activityLevel,
                 {
@@ -103,6 +132,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   'E': 'Extra active',
                 },
                 (value) => setState(() => _activityLevel = value!),
+                _showActivityInfo,
               ),
               const SizedBox(height: 16),
               _buildDropdown(
@@ -172,6 +202,41 @@ class _RegisterPageState extends State<RegisterPage> {
           }).toList(),
           onChanged: onChanged,
         ),
+      ),
+    );
+  }
+
+  Widget _buildDropdownWithInfoIcon(String label, String value, Map<String, String> items, void Function(String?) onChanged, void Function() onInfoPressed) {
+    return InputDecorator(
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: value,
+                isDense: true,
+                isExpanded: true,
+                items: items.entries.map((entry) {
+                  return DropdownMenuItem<String>(
+                    value: entry.key,
+                    child: Text(entry.value),
+                  );
+                }).toList(),
+                onChanged: onChanged,
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.info_outline),
+            onPressed: onInfoPressed,
+          ),
+        ],
       ),
     );
   }
