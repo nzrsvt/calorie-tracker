@@ -129,54 +129,58 @@ class NutritionProgressCard extends StatelessWidget {
             Text(
               'Calories',
               style: Theme.of(context).textTheme.titleLarge,
+              textAlign: TextAlign.left,
+            ),
+            const SizedBox(height: 16),
+            Center(
+              child: SizedBox(
+                height: 120,
+                width: 120,
+                child: CircularProgressIndicator(
+                  value: calorieProgress,
+                  strokeWidth: 12,
+                  backgroundColor: const Color.fromARGB(255, 154, 154, 154),  
+                  valueColor: AlwaysStoppedAnimation(Colors.blue),
+                ),
+              ),
             ),
             const SizedBox(height: 8),
-            LinearProgressIndicator(
-              value: calorieProgress,
-              minHeight: 8,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '${totalCalories.toStringAsFixed(0)} / ${targetCalories.toStringAsFixed(0)} kcal',
-              style: Theme.of(context).textTheme.bodyMedium,
+            Center(
+              child: Text(
+                '${totalCalories.toStringAsFixed(0)} / ${targetCalories.toStringAsFixed(0)} kcal',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
             ),
             const SizedBox(height: 24),
             Text(
               'Macronutrients',
               style: Theme.of(context).textTheme.titleLarge,
+              textAlign: TextAlign.left,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                Expanded(
-                  child: NutrientProgressIndicator(
-                    label: 'Fat',
-                    progress: fatProgress,
-                    total: totalFat,
-                    target: targetFat,
-                    color: Colors.orange,
-                  ),
+                NutrientProgressCircle(
+                  label: 'Fat',
+                  progress: fatProgress,
+                  total: totalFat,
+                  target: targetFat,
+                  color: Colors.red, 
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: NutrientProgressIndicator(
-                    label: 'Carbs',
-                    progress: carbProgress,
-                    total: totalCarbs,
-                    target: targetCarbs,
-                    color: Colors.green,
-                  ),
+                NutrientProgressCircle(
+                  label: 'Carbs',
+                  progress: carbProgress,
+                  total: totalCarbs,
+                  target: targetCarbs,
+                  color: Colors.orange,
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: NutrientProgressIndicator(
-                    label: 'Protein',
-                    progress: proteinProgress,
-                    total: totalProtein,
-                    target: targetProtein,
-                    color: Colors.red,
-                  ),
+                NutrientProgressCircle(
+                  label: 'Protein',
+                  progress: proteinProgress,
+                  total: totalProtein,
+                  target: targetProtein,
+                  color: Colors.green, 
                 ),
               ],
             ),
@@ -187,14 +191,14 @@ class NutritionProgressCard extends StatelessWidget {
   }
 }
 
-class NutrientProgressIndicator extends StatelessWidget {
+class NutrientProgressCircle extends StatelessWidget {
   final String label;
   final double progress;
   final double total;
   final double target;
   final Color color;
 
-  const NutrientProgressIndicator({
+  const NutrientProgressCircle({
     Key? key,
     required this.label,
     required this.progress,
@@ -206,20 +210,23 @@ class NutrientProgressIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        SizedBox(
+          height: 80,
+          width: 80,
+          child: CircularProgressIndicator(
+            value: progress,
+            strokeWidth: 8,
+            backgroundColor: const Color.fromARGB(255, 154, 154, 154),  
+            valueColor: AlwaysStoppedAnimation(color),  
+          ),
+        ),
+        const SizedBox(height: 8),
         Text(
           label,
           style: Theme.of(context).textTheme.bodyMedium,
         ),
-        const SizedBox(height: 8),
-        LinearProgressIndicator(
-          value: progress,
-          minHeight: 8,
-          borderRadius: BorderRadius.circular(4),
-          valueColor: AlwaysStoppedAnimation<Color>(color),
-        ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 4),
         Text(
           '${total.toStringAsFixed(0)} / ${target.toStringAsFixed(0)} g',
           style: Theme.of(context).textTheme.bodySmall,
@@ -228,3 +235,4 @@ class NutrientProgressIndicator extends StatelessWidget {
     );
   }
 }
+
