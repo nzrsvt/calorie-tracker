@@ -265,15 +265,44 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildListTile(String title, String value, VoidCallback? onEdit) {
-    return ListTile(
-      title: Text(title, style: Theme.of(context).textTheme.titleMedium),
-      subtitle: Text(value, style: Theme.of(context).textTheme.bodyLarge),
-      trailing: onEdit != null
-          ? IconButton(
-              icon: const Icon(Icons.edit_outlined),
-              onPressed: onEdit,
-            )
-          : null,
-    );
-  }
+  return ListTile(
+    title: Row(
+      children: [
+        Text(title, style: Theme.of(context).textTheme.titleMedium),
+        if (title == 'Activity Level')
+          IconButton(
+            icon: Icon(Icons.info_outline),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: Text('Activity Level Information'),
+                  content: Text(
+                      '• Sedentary - little or no exercise\n'
+                      '• Lightly active - light exercise/sports 1-3 days/week\n'
+                      '• Moderately active - moderate exercise/sports 3-5 days/week\n'
+                      '• Very active - hard exercise/sports 6-7 days a week\n'
+                      '• Extra active - very hard exercise, physical job or training twice a day'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text('OK'),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+      ],
+    ),
+    subtitle: Text(value, style: Theme.of(context).textTheme.bodyLarge),
+    trailing: onEdit != null
+        ? IconButton(
+            icon: const Icon(Icons.edit_outlined),
+            onPressed: onEdit,
+          )
+        : null,
+  );
+}
+
 }

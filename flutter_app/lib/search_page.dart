@@ -162,28 +162,58 @@ class FoodDetailPage extends StatefulWidget {
 class _FoodDetailPageState extends State<FoodDetailPage> {
   final ApiService apiService = ApiService();
   final TextEditingController _portionSizeController = TextEditingController();
-  String _selectedUnit = '';
-  String _selectedMealType = 'breakfast'; // Додано: початкове значення для типу прийому їжі
+  String? _selectedMealType;
+
+  // Копіюємо початкові значення з foodItem для обчислення нових значень
+  late double _initialPortionSize;
+  late double _initialCalories;
+  late double _initialProtein;
+  late double _initialFat;
+  late double _initialCarbohydrates;
 
   @override
   void initState() {
     super.initState();
-    _portionSizeController.text = widget.foodItem.portionSize.toString();
-    _selectedUnit = widget.foodItem.quantityUnit;
+    _initialPortionSize = widget.foodItem.portionSize;
+    _initialCalories = widget.foodItem.calories;
+    _initialProtein = widget.foodItem.protein;
+    _initialFat = widget.foodItem.fat;
+    _initialCarbohydrates = widget.foodItem.carbohydrates;
+
+    _portionSizeController.text = _initialPortionSize.toString();
+  }
+
+  // Функція для розрахунку нових значень на основі зміненого розміру порції
+  void _updateNutritionalValues() {
+    double portionSize = double.tryParse(_portionSizeController.text) ?? _initialPortionSize;
+
+    double calories = _initialCalories * (portionSize / _initialPortionSize);
+    double protein = _initialProtein * (portionSize / _initialPortionSize);
+    double fat = _initialFat * (portionSize / _initialPortionSize);
+    double carbohydrates = _initialCarbohydrates * (portionSize / _initialPortionSize);
+
+    setState(() {
+      widget.foodItem.calories = calories;
+      widget.foodItem.protein = protein;
+      widget.foodItem.fat = fat;
+      widget.foodItem.carbohydrates = carbohydrates;
+    });
   }
 
   void _addMeal() async {
-    try {
-      await apiService.addUserMeal(
-        context,
-        widget.foodItem.id,
-        double.parse(_portionSizeController.text),
-        _selectedMealType // Додано: передаємо вибраний тип прийому їжі
-      );
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Meal added successfully')));
-      Navigator.pop(context);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to add meal')));
+    if (_selectedMealType != null) {
+      try {
+        await apiService.addUserMeal(
+          context,
+          widget.foodItem.id,
+          double.parse(_portionSizeController.text),
+          _selectedMealType!,
+        );
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Meal added successfully')));
+        Navigator.pop(context);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to add meal')));
+      }
     }
   }
 
@@ -207,13 +237,13 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                   children: [
                     Text('Producer: ${widget.foodItem.producer}', style: Theme.of(context).textTheme.bodyLarge),
                     const SizedBox(height: 8),
-                    Text('Calories: ${widget.foodItem.calories} kcal', style: Theme.of(context).textTheme.bodyLarge),
+                    Text('Calories: ${widget.foodItem.calories.toStringAsFixed(1)} kcal', style: Theme.of(context).textTheme.bodyLarge),
                     const SizedBox(height: 8),
-                    Text('Protein: ${widget.foodItem.protein} g', style: Theme.of(context).textTheme.bodyLarge),
+                    Text('Protein: ${widget.foodItem.protein.toStringAsFixed(1)} g', style: Theme.of(context).textTheme.bodyLarge),
                     const SizedBox(height: 8),
-                    Text('Fat: ${widget.foodItem.fat} g', style: Theme.of(context).textTheme.bodyLarge),
+                    Text('Fat: ${widget.foodItem.fat.toStringAsFixed(1)} g', style: Theme.of(context).textTheme.bodyLarge),
                     const SizedBox(height: 8),
-                    Text('Carbohydrates: ${widget.foodItem.carbohydrates} g', style: Theme.of(context).textTheme.bodyLarge),
+                    Text('Carbohydrates: ${widget.foodItem.carbohydrates.toStringAsFixed(1)} g', style: Theme.of(context).textTheme.bodyLarge),
                   ],
                 ),
               ),
@@ -226,10 +256,12 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                 suffixText: widget.foodItem.quantityUnit,
               ),
               keyboardType: TextInputType.number,
+              onChanged: (value) => _updateNutritionalValues(), // Оновлюємо значення при зміні
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
               value: _selectedMealType,
+              hint: const Text('Select Meal Type'),
               decoration: const InputDecoration(labelText: 'Meal Type'),
               items: <String>[
                 'breakfast',
@@ -252,7 +284,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
             ),
             const SizedBox(height: 16),
             FilledButton(
-              onPressed: _addMeal,
+              onPressed: _selectedMealType == null ? null : _addMeal,
               child: const Text('Add Meal'),
             ),
           ],
@@ -261,6 +293,8 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
     );
   }
 }
+
+
 
 extension StringExtension on String {
   String capitalize() {
