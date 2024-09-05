@@ -14,6 +14,7 @@ import os
 from dotenv import load_dotenv
 import re
 import json
+from django.db.models import Q
 
 class UserProfileViewSet(viewsets.ModelViewSet):
     queryset = UserProfile.objects.all()
@@ -31,7 +32,17 @@ class FoodItemViewSet(viewsets.ModelViewSet):
     serializer_class = FoodItemSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
-    search_fields = ["name", "producer",]
+    search_fields = ["name", "producer"]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        search_query = self.request.query_params.get('search', None)
+        if search_query:
+            query = Q()
+            for term in search_query.split():
+                query |= Q(name__icontains=term) | Q(producer__icontains=term)
+            queryset = queryset.filter(query)
+        return queryset
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
