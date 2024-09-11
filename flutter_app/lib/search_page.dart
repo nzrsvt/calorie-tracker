@@ -98,7 +98,7 @@ class _SearchPageState extends State<SearchPage> with TickerProviderStateMixin {
             ),
             const SizedBox(height: 16),
             Row(
-              mainAxisAlignment: MainAxisAlignment.center, // Вирівнювання по центру
+              mainAxisAlignment: MainAxisAlignment.center, 
               children: [
                 FilledButton.icon(
                   onPressed: _navigateToAddFoodItem,
@@ -164,7 +164,6 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
   final TextEditingController _portionSizeController = TextEditingController();
   String? _selectedMealType;
 
-  // Копіюємо початкові значення з foodItem для обчислення нових значень
   late double _initialPortionSize;
   late double _initialCalories;
   late double _initialProtein;
@@ -183,7 +182,6 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
     _portionSizeController.text = _initialPortionSize.toString();
   }
 
-  // Функція для розрахунку нових значень на основі зміненого розміру порції
   void _updateNutritionalValues() {
     double portionSize = double.tryParse(_portionSizeController.text) ?? _initialPortionSize;
 
@@ -256,7 +254,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                 suffixText: widget.foodItem.quantityUnit,
               ),
               keyboardType: TextInputType.number,
-              onChanged: (value) => _updateNutritionalValues(), // Оновлюємо значення при зміні
+              onChanged: (value) => _updateNutritionalValues(),
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(

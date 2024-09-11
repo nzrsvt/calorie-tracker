@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'api_service.dart';
-import 'auth_service.dart';  // Додайте цей імпорт для AuthService
+import 'auth_service.dart'; 
 import 'models.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -12,7 +12,7 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   final ApiService apiService = ApiService();
-  final AuthService authService = AuthService();  // Додайте AuthService
+  final AuthService authService = AuthService(); 
   late Future<UserProfile> futureUserProfile;
 
   @override
@@ -148,7 +148,7 @@ class _ProfilePageState extends State<ProfilePage> {
   void _logout() async {
     try {
       await authService.logout();
-      Navigator.of(context).pushReplacementNamed('/login');  // Замініть '/login' на правильний маршрут
+      Navigator.of(context).pushReplacementNamed('/login'); 
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to logout: $e')),

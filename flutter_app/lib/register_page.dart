@@ -91,10 +91,7 @@ class _RegisterPageState extends State<RegisterPage> {
         _activityLevel!,
         _goal!,
       );
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginPage()),
-      );
+      Navigator.pop(context);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
