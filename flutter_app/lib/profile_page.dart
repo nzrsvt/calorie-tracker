@@ -184,10 +184,6 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-        elevation: 0,
-      ),
       body: FutureBuilder<UserProfile>(
         future: futureUserProfile,
         builder: (context, snapshot) {
@@ -199,41 +195,45 @@ class _ProfilePageState extends State<ProfilePage> {
             return const Center(child: Text('No user profile found.'));
           } else {
             UserProfile userProfile = snapshot.data!;
-            return SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildProfileHeader(userProfile),
-                  _buildSectionHeader('Personal Information'),
-                  _buildInfoCard([
-                    _buildListTile('Gender', _getFullText('gender', userProfile.gender), () => _editField(userProfile, 'gender', 'dropdown')),
-                    _buildListTile('Age', '${userProfile.age} years', () => _editField(userProfile, 'age', 'number')),
-                    _buildListTile('Height', '${userProfile.height} cm', () => _editField(userProfile, 'height', 'number')),
-                    _buildListTile('Weight', '${userProfile.weight} kg', () => _editField(userProfile, 'weight', 'number')),
-                  ]),
-                  _buildSectionHeader('Fitness Information'),
-                  _buildInfoCard([
-                    _buildListTile('Activity Level', _getFullText('activityLevel', userProfile.activityLevel), () => _editField(userProfile, 'activityLevel', 'dropdown')),
-                    _buildListTile('Goal', _getFullText('goal', userProfile.goal), () => _editField(userProfile, 'goal', 'dropdown')),
-                  ]),
-                  _buildSectionHeader('Nutrition Goals'),
-                  _buildInfoCard([
-                    _buildListTile('Calorie Intake', '${userProfile.calorieIntake.toStringAsFixed(1)} kcal', null),
-                    _buildListTile('Protein Intake', '${userProfile.proteinIntake.toStringAsFixed(1)} g', null),
-                    _buildListTile('Fat Intake', '${userProfile.fatIntake.toStringAsFixed(1)} g', null),
-                    _buildListTile('Carbohydrate Intake', '${userProfile.carbohydrateIntake.toStringAsFixed(1)} g', null),
-                  ]),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16.0),
-                    child: Center(
-                      child: ElevatedButton(
-                        onPressed: _logout,
-                        child: const Text('Logout'),
+            return CustomScrollView(
+              slivers: [
+                _buildProfileHeader(userProfile),
+                SliverToBoxAdapter(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSectionHeader('Personal Information'),
+                      _buildInfoCard([
+                        _buildListTile('Gender', _getFullText('gender', userProfile.gender), () => _editField(userProfile, 'gender', 'dropdown')),
+                        _buildListTile('Age', '${userProfile.age} years', () => _editField(userProfile, 'age', 'number')),
+                        _buildListTile('Height', '${userProfile.height} cm', () => _editField(userProfile, 'height', 'number')),
+                        _buildListTile('Weight', '${userProfile.weight} kg', () => _editField(userProfile, 'weight', 'number')),
+                      ]),
+                      _buildSectionHeader('Fitness Information'),
+                      _buildInfoCard([
+                        _buildListTile('Activity Level', _getFullText('activityLevel', userProfile.activityLevel), () => _editField(userProfile, 'activityLevel', 'dropdown')),
+                        _buildListTile('Goal', _getFullText('goal', userProfile.goal), () => _editField(userProfile, 'goal', 'dropdown')),
+                      ]),
+                      _buildSectionHeader('Nutrition Goals'),
+                      _buildInfoCard([
+                        _buildListTile('Calorie Intake', '${userProfile.calorieIntake.toStringAsFixed(1)} kcal', null),
+                        _buildListTile('Protein Intake', '${userProfile.proteinIntake.toStringAsFixed(1)} g', null),
+                        _buildListTile('Fat Intake', '${userProfile.fatIntake.toStringAsFixed(1)} g', null),
+                        _buildListTile('Carbohydrate Intake', '${userProfile.carbohydrateIntake.toStringAsFixed(1)} g', null),
+                      ]),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16.0),
+                        child: Center(
+                          child: ElevatedButton(
+                            onPressed: _logout,
+                            child: const Text('Logout'),
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             );
           }
         },
@@ -242,29 +242,52 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildProfileHeader(UserProfile userProfile) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      color: Theme.of(context).colorScheme.primaryContainer,
-      child: Column(
-        children: [
-          CircleAvatar(
-            radius: 50,
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            child: Text(
-              userProfile.username.substring(0, 1).toUpperCase(),
-              style: TextStyle(fontSize: 40, color: Theme.of(context).colorScheme.onPrimary),
+    return SliverAppBar(
+      expandedHeight: 200.0,
+      floating: false,
+      pinned: true,
+      flexibleSpace: FlexibleSpaceBar(
+        background: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Theme.of(context).colorScheme.primary,
+                Theme.of(context).colorScheme.primaryContainer,
+              ],
             ),
           ),
-          const SizedBox(height: 16),
-          Text(
-            userProfile.username,
-            style: Theme.of(context).textTheme.headlineSmall,
+          child: SafeArea(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircleAvatar(
+                  radius: 50,
+                  backgroundColor: Theme.of(context).colorScheme.onPrimary,
+                  child: Text(
+                    userProfile.username.substring(0, 1).toUpperCase(),
+                    style: TextStyle(fontSize: 40, color: Theme.of(context).colorScheme.primary),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  userProfile.username,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onPrimary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  userProfile.email,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.8),
+                  ),
+                ),
+              ],
+            ),
           ),
-          Text(
-            userProfile.email,
-            style: Theme.of(context).textTheme.bodyLarge,
-          ),
-        ],
+        ),
       ),
     );
   }
