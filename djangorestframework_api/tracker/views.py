@@ -60,7 +60,7 @@ class FoodItemViewSet(viewsets.ModelViewSet):
             "You are an AI used for calculations in a mobile calorie counting app. "
             "Your task is to generate only a JSON response based on the input description. "
             "I will provide you with a description of a dish. Extract the ingredients and their amounts from the description. "
-            "First, calculate the total nutritional values (calories, protein, fat, carbohydrates) for the entire dish by summing the values of each ingredient. "
+            "First, calculate the total nutritional values (calories, protein, fat, carbohydrates, weight) for the entire dish by summing the values of each ingredient. "
             "Next, determine the total weight of the dish by summing the weight of all ingredients. "
             "Return only the nutritional values in JSON format with the following keys: 'calories', 'protein', 'fat', 'carbohydrates', 'weight'. "
             "Do not include any explanations, calculation steps, or text outside of the JSON. "
@@ -82,19 +82,34 @@ class FoodItemViewSet(viewsets.ModelViewSet):
             top_p=0.8,  # Налаштування для гнучкості відповідей
             temperature=0.1  # Трохи знижено для більшої точності
         )
-        
+
         full_response = response.dict()
         assistant_content = full_response["choices"][0]["message"]["content"]
-        
 
-        try:
-            nutritional_data = json.loads(assistant_content)
+        nutritional_data = {}
+        patterns = {
+            'calories': r'"calories":\s*(\d+(?:\.\d+)?)',
+            'protein': r'"protein":\s*(\d+(?:\.\d+)?)',
+            'fat': r'"fat":\s*(\d+(?:\.\d+)?)',
+            'carbohydrates': r'"carbohydrates":\s*(\d+(?:\.\d+)?)',
+            'weight': r'"weight":\s*(\d+(?:\.\d+)?)'
+        }
+
+        for key, pattern in patterns.items():
+            match = re.search(pattern, assistant_content)
+            if match:
+                nutritional_data[key] = float(match.group(1))
+
+
+        if len(nutritional_data) == 5:
+            weight = nutritional_data['weight']
             for nutrient in nutritional_data:
-                print(nutritional_data[nutrient])
-                nutritional_data[nutrient] = round((nutritional_data[nutrient] / (nutritional_data["weight"] / 100)), 2)
-        except json.JSONDecodeError:
+                if nutrient != 'weight':
+                    nutritional_data[nutrient] = round((nutritional_data[nutrient] / (weight / 100)), 2)
+            nutritional_data['weight'] = 100 
+        else:
             nutritional_data = {}
-            
+
         return Response(nutritional_data)
 
 class UserMealViewSet(viewsets.ModelViewSet):
