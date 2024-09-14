@@ -6,7 +6,8 @@ import 'exceptions.dart';
 import 'base_repository.dart';
 
 class AuthService extends BaseRepository {
-  final String baseUrl = 'http://10.0.2.2:8000';
+  // final String baseUrl = 'http://10.0.2.2:8000';
+  final String baseUrl = 'https://nzrsvt.pythonanywhere.com';
   final storage = const FlutterSecureStorage();
 
   Future<void> register(BuildContext context, String username, String email, String password, String gender, int age, int height, double weight, String activityLevel, String goal) async {

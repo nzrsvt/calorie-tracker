@@ -6,7 +6,8 @@ import 'models.dart';
 import 'base_repository.dart';
 
 class ApiService extends BaseRepository {
-  final String baseUrl = 'http://10.0.2.2:8000';
+  // final String baseUrl = 'http://10.0.2.2:8000';
+  final String baseUrl = 'https://nzrsvt.pythonanywhere.com';
   final AuthService _authService = AuthService();
 
   Future<Map<String, String>> _getHeaders() async {
